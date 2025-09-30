@@ -22,10 +22,17 @@ from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.pipeline import make_pipeline
 from scipy.spatial.distance import sqeuclidean,jaccard,canberra,cdist,euclidean
 from statistics import median,median_low,median_high,geometric_mean,harmonic_mean,quantiles
+
+import models
+from models import ipca
+import similarityAnalysis
+from similarityAnalysis import ipcaAnalysis,similarity
 from scipy import stats as st
 import matplotlib.pyplot as plt
-import shap
 import torch
+import utils
+from utils import preprocess, utils
+import argparse
 import gc
 import os
 currentTime=str(datetime.datetime.now()).replace(':','_')
@@ -51,1254 +58,295 @@ def dataLoading(data_dir):
         elif '.erh' in col:
             cols_erh.append(str(col))
     #print(cols_rs)
-    
     df_orig ['S1_COUNT']= (df_orig[cols_rs]>0).sum(axis=1)
-    
+        
     df_orig ['Richness_COUNT']= (df_orig[cols_erh]>0).sum(axis=1)
 
     df_orig['S1_STDEV'] = df_orig[cols_rs].std(axis=1)
     df_orig['Richness_STDEV'] = df_orig[cols_erh].std(axis=1)
-    df_orig=df_orig[(df_orig['S1_SUM']>0)&(df_orig['Richness_SUM']>0)&(df_orig['S1_COUNT']>0)&(df_orig['Richness_COUNT']>0)&(df_orig['S1_STDEV']>0)&(df_orig['Richness_STDEV']>0)]
-    df_orig['S1_ind']  = df_orig['S1_SUM']/df_orig['S1_STDEV']
-    df_orig['Richness_ind']  = df_orig['Richness_SUM']/df_orig['Richness_STDEV']
-    df_orig['S1_Richness_efficiency']= df_orig['Richness_SUM']/df_orig['S1_SUM']
-    df_orig['S1_Richness_balance']=abs(df_orig['Richness_ind']/df_orig['S1_ind'].apply(np.log))
-    df_orig = df_orig[['CodeA','CodeB','CodeC','Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT','S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']]
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==247) & (df_orig ['CodeA']==169)])
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==245) & (df_orig ['CodeA']==191)])
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==245) & (df_orig ['CodeA']==235)])
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==207) & (df_orig ['CodeA']==134)])
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==152) & (df_orig ['CodeA']==173)])
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==247) & (df_orig ['CodeA']==174)])
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==137) & (df_orig ['CodeA']==233)])
-    print(df_orig [(df_orig ['CodeC']==1) & (df_orig ['CodeB']==17) & (df_orig ['CodeA']==71)])
-    print(df_orig [(df_orig ['CodeC']==260) & (df_orig ['CodeB']==26) & (df_orig ['CodeA']==22)])
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==194) & (df_orig ['CodeA']==202)])
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==194) & (df_orig ['CodeA']==52)])
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==234) & (df_orig ['CodeA']==173)])
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==245) & (df_orig ['CodeA']==156)])
-
 
     return df_orig
-class preprocess():
-
-    def dataNormalize(df):
 
 
-        
-        print(df.columns)
-        cols = ['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']
-        for col in cols:
-            df[col+'_orig']=df[col]
-        df_ = df[cols]
+def erhAnalysis(erh_dir,df_filtered):
+	print(len(df_filtered))
+	df_merge = df_filtered
 
-        df_normalized  = pd.DataFrame(scaler.fit_transform(df_.values),columns=df_.columns,index=df_.index)
-        print(df_normalized.columns)
-        df = df.drop(cols,axis=1)
-        df_normalized = pd.concat((df,df_normalized),axis=1)
+	array_1 = [[1,3],[4,6],[7,9],[10,12],[13,15],[16,18]]
+	array_2 = [[2,3],[5,6],[8,9],[11,12],[14,15],[17,18]]
+	col_1355=[]
+	col_insr=[]
+	col_1361=[]    
+	for r,d,f in os.walk(erh_dir):
+		print(r)
+		for m in range(len(array_1)):
+			num_1355 =array_1[m][0]
+			num_1361 =array_2[m][0]
+			num_insr =array_1[m][1]
+			for f_ in f:
+				if num_1355 == int(f_.split("-")[0]):
+					#print('pY1355 col file is: ',f_)
+					col_1355.append(f_)
+				elif num_1361 == int(f_.split("-")[0]):
+					#print('pY1361 col file is: ',f_)
+					col_1361.append(f_)
+				elif num_insr == int(f_.split("-")[0]):
+					#print('INSR col file is: ',f_)
+					col_insr.append(f_)
+		for i in range(len(f)):
+			f_ = f[i]
+			if f_.split(".")[1]=="erh":
+				if "pY1355" in f_.split(".")[0]:
+					print('pY1355 file is: ',f_)
+
+					df_1355 = pd.read_csv(r+f_,names=['CodeA','CodeB','CodeC','S1','Richness'] )
+					df_1355 = df_1355.sort_values(by=['CodeA','CodeB','CodeC'])
+					col_name = str(f_)
+					df_1355[col_name] = df_1355['Richness']
+					df_1355  = df_1355.drop("Richness",axis=1)
+					df_1355[col_name+'_S1'] = df_1355['S1']
+					df_1355 = df_1355.drop("S1",axis=1)
+					df_merge = df_merge.merge(df_1355,how='left',on=['CodeA','CodeB','CodeC'])
+				elif "pY1361" in f_.split(".")[0]:
+					print('pY1361 file is: ',f_)
+					df_1361 = pd.read_csv(r+f_,names=['CodeA','CodeB','CodeC','S1','Richness'])
+					df_1361 = df_1361.sort_values(by=['CodeA','CodeB','CodeC'])
+					col_name = str(f_)
+					df_1361[col_name] = df_1361['Richness']
+					df_1361  = df_1361.drop("Richness",axis=1)
+					df_1361[col_name+'_S1'] = df_1361['S1']
+					df_1361 = df_1361.drop("S1",axis=1)
+					df_merge = df_merge.merge(df_1361,how='left',on=['CodeA','CodeB','CodeC'])
+				elif "INSR" in f_.split(".")[0]:
+					print('INSR file is: ',f_)
+					df_ins = pd.read_csv(r+f_,names=['CodeA','CodeB','CodeC','S1','Richness'])
+					df_ins = df_ins.sort_values(by=['CodeA','CodeB','CodeC'])
+					print(df_ins [(df_ins ['CodeC']==42) & (df_ins ['CodeB']==703) & (df_ins ['CodeA']==327)])
+					col_name = str(f_)
+					df_ins[col_name] = df_ins['Richness']
+					df_ins = df_ins.drop("Richness",axis=1)
+					df_ins[col_name+'_S1'] = df_ins['S1']
+					df_ins = df_ins.drop("S1",axis=1)
+					df_merge = df_merge.merge(df_ins,how='left',on=['CodeA','CodeB','CodeC'])
+					print(df_merge [(df_merge ['CodeC']==42) & (df_merge ['CodeB']==703) & (df_merge ['CodeA']==327)])
+
+	df_merge.fillna(0,inplace=True)
+	print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
+	df_col = pd.DataFrame()
+	df_col['col_1355']=col_1355
+	df_col['col_1361']=col_1361
+	df_col['col_insr']=col_insr
+	print(df_col)
+	
+	df_merge['performance_ind_0_total']=0
+	df_merge['richness_1355_0']=0
+	df_merge['richness_1355_1']=0
+	df_merge['performance_ind_1_total']=0
+	df_merge['richness_1361_0']=0
+	df_merge['richness_1361_1']=0
+	df_merge['richness_insr_1355_0']=0
+	df_merge['richness_insr_1355_1']=0
+	df_merge['richness_insr_1361_0']=0
+	df_merge['richness_insr_1361_1']=0
+	df_merge['s1_1355_0']=0
+	df_merge['s1_1355_1']=0
+	df_merge['s1_1361_0']=0
+	df_merge['s1_1361_1']=0
+	df_merge['s1_insr_1355_0']=0
+	df_merge['s1_insr_1355_1']=0
+	df_merge['s1_insr_1361_0']=0
+	df_merge['s1_insr_1361_1']=0
+
+	for i in range(len(df_merge)):
+		richiness_1355_1 = 0.00
+		richiness_1355_0 = 0.00
+		richiness_insr_1355_1 = 0.00
+		richiness_insr_1355_0 = 0.00
+		richiness_1361_1 = 0.00
+		richiness_1361_0 = 0.00
+		richiness_insr_1361_1 = 0.00
+		richiness_insr_1361_0 = 0.00
+		s1_1355_1 = 0.00
+		s1_1355_0 = 0.00
+		s1_insr_1355_1 = 0.00
+		s1_insr_1355_0 = 0.00
+		s1_1361_1 = 0.00
+		s1_1361_0 = 0.00
+		s1_insr_1361_1 = 0.00
+		s1_insr_1361_0 = 0.00
+		performance_total_1355 = 0
+		performance_total_1361 = 0
+		for j in range(len(df_col)):
+			col_1355_ = df_col['col_1355'].values[j]
+			col_1361_ = df_col['col_1361'].values[j]
+			col_insr_ = df_col['col_insr'].values[j]
+			col_1355_S1 = df_col['col_1355'].values[j]+'_S1'
+			col_1361_S1 = df_col['col_1361'].values[j]+'_S1'
+			col_insr_S1 = df_col['col_insr'].values[j]+'_S1'
+			#print(col_1355_,col_insr_)   
+			if df_merge[col_1355_].values[i]>=df_merge[col_insr_].values[i]:
+				richiness_1355_1+=df_merge[col_1355_].values[i]
+				richiness_insr_1355_1+=df_merge[col_insr_].values[i]
+				s1_1355_1+=df_merge[col_1355_S1].values[i]
+				s1_insr_1355_1+=df_merge[col_insr_S1].values[i]
+				performance_total_1355+=1
+			else:
+				richiness_1355_0+=df_merge[col_1355_].values[i]
+				performance_total_1355+=0
+				richiness_insr_1355_0+=df_merge[col_insr_].values[i]
+				s1_1355_0+=df_merge[col_1355_S1].values[i]
+				s1_insr_1355_0+=df_merge[col_insr_S1].values[i]
+			#print(col_1361_,col_insr_)   
+			if df_merge[col_1361_].values[i]>=df_merge[col_insr_].values[i]:
+				richiness_1361_1+=df_merge[col_1361_].values[i]
+				richiness_insr_1361_1+=df_merge[col_insr_].values[i]
+				performance_total_1361+=1
+				s1_1361_1+=df_merge[col_1361_S1].values[i]
+				s1_insr_1361_1+=df_merge[col_insr_S1].values[i]
+			else:
+				richiness_1361_0+=df_merge[col_1361_].values[i]
+				performance_total_1361+=0
+				richiness_insr_1361_0+=df_merge[col_insr_].values[i]
+				s1_1361_0+=df_merge[col_1361_S1].values[i]
+				s1_insr_1361_0+=df_merge[col_insr_S1].values[i]
+		df_merge['performance_ind_0_total'].values[i]=performance_total_1355
+		df_merge['richness_1355_0'].values[i]=richiness_1355_0
+		df_merge['richness_1355_1'].values[i]=richiness_1355_1
+		df_merge['performance_ind_1_total'].values[i]=performance_total_1361
+		df_merge['richness_1361_0'].values[i]=richiness_1361_0
+		df_merge['richness_1361_1'].values[i]=richiness_1361_1
+		df_merge['richness_insr_1355_0'].values[i]=richiness_insr_1355_0
+		df_merge['richness_insr_1355_1'].values[i]=richiness_insr_1355_1
+		df_merge['richness_insr_1361_0'].values[i]=richiness_insr_1361_0
+		df_merge['richness_insr_1361_1'].values[i]=richiness_insr_1361_1
+		df_merge['s1_1355_0'].values[i]=s1_1355_0
+		df_merge['s1_1355_1'].values[i]=s1_1355_1
+		df_merge['s1_1361_0'].values[i]=s1_1361_0
+		df_merge['s1_1361_1'].values[i]=s1_1361_1
+		df_merge['s1_insr_1355_0'].values[i]=s1_insr_1355_0
+		df_merge['s1_insr_1355_1'].values[i]=s1_insr_1355_1
+		df_merge['s1_insr_1361_0'].values[i]=s1_insr_1361_0
+		df_merge['s1_insr_1361_1'].values[i]=s1_insr_1361_1
+	print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
+	df_merge['total_pY1355_mixed']=0
+	df_merge['total_pY1361_mixed']=0
+	df_merge['total_insr_pY1355_mixed']=0
+	df_merge['total_insr_pY1361_mixed']=0
+	df_merge['s1_pY1355_mixed']=0
+	df_merge['s1_pY1361_mixed']=0
+	df_merge['s1_insr_pY1355_mixed']=0
+	df_merge['s1_insr_pY1361_mixed']=0
+	for i in range(len(df_merge)):
+		if df_merge['performance_ind_0_total'].values[i]>=3:
+			df_merge['total_pY1355_mixed'].values[i]=df_merge['richness_1355_1'].values[i]
+			df_merge['total_insr_pY1355_mixed'].values[i]=df_merge['richness_insr_1355_1'].values[i]
+			df_merge['s1_pY1355_mixed'].values[i]=df_merge['s1_1355_1'].values[i]
+			df_merge['s1_insr_pY1355_mixed'].values[i]=df_merge['s1_insr_1355_1'].values[i]
+		else:
+			df_merge['total_pY1355_mixed'].values[i]=df_merge['richness_1355_0'].values[i]
+			df_merge['total_insr_pY1355_mixed'].values[i]=df_merge['richness_insr_1355_0'].values[i]
+			df_merge['s1_pY1355_mixed'].values[i]=df_merge['s1_1355_0'].values[i]
+			df_merge['s1_insr_pY1355_mixed'].values[i]=df_merge['s1_insr_1355_0'].values[i]
+	for i in range(len(df_merge)):
+		if df_merge['performance_ind_1_total'].values[i]>=3:
+			df_merge['total_pY1361_mixed'].values[i]=df_merge['richness_1361_1'].values[i]
+			df_merge['total_insr_pY1361_mixed'].values[i]=df_merge['richness_insr_1361_1'].values[i]
+			df_merge['s1_pY1361_mixed'].values[i]=df_merge['s1_1361_1'].values[i]
+			df_merge['s1_insr_pY1361_mixed'].values[i]=df_merge['s1_insr_1361_1'].values[i]
+		else:
+			df_merge['total_pY1361_mixed'].values[i]=df_merge['richness_1361_0'].values[i]
+			df_merge['total_insr_pY1361_mixed'].values[i]=df_merge['richness_insr_1361_0'].values[i]
+			df_merge['s1_pY1361_mixed'].values[i]=df_merge['s1_1361_0'].values[i]
+			df_merge['s1_insr_pY1361_mixed'].values[i]=df_merge['s1_insr_1361_0'].values[i]
+	print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
+	df_merge['total_pY1355']=0
+	df_merge['total_pY1361']=0
+	df_merge['total_insr']=0
+	df_merge['s1_pY1355']=0
+	df_merge['s1_pY1361']=0
+	df_merge['s1_insr']=0
+	for col in df_merge.columns:
+		if "pY1355.erh_S1" in col:
+			df_merge['s1_pY1355'] = df_merge['s1_pY1355']+df_merge[str(col)]
+		elif "pY1355.erh" in col:
+			df_merge['total_pY1355'] = df_merge['total_pY1355']+df_merge[str(col)]
+		elif "pY1361.erh_S1" in col:
+			df_merge['s1_pY1361'] = df_merge['s1_pY1361']+df_merge[str(col)]
+		elif "pY1361.erh" in col:
+			df_merge['total_pY1361'] = df_merge['total_pY1361']+df_merge[str(col)]
+		elif "INSR.erh_S1" in col:
+			df_merge['s1_insr'] = df_merge['s1_insr']+df_merge[str(col)]
+		elif "INSR.erh" in col:
+			df_merge['total_insr'] = df_merge['total_insr']+df_merge[str(col)]
+	print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
+	#df_erh_insr = df_merge[['CodeA', 'CodeB', 'CodeC','total_pY1355','total_pY1361','total_insr','total_pY1355_mixed','total_pY1361_mixed','total_insr_pY1355_mixed','total_insr_pY1361_mixed']]
+	#df_erh_insr.fillna(0,inplace=True)
+	#df_erh_insr=df_merge
+	
+	cols=['richness_1355_0', 'richness_1355_1', 'richness_1361_0', 'richness_1361_1', 'richness_insr_1355_0', 'richness_insr_1355_1', 'richness_insr_1361_0', 'richness_insr_1361_1', 's1_1355_0', 's1_1355_1', 's1_1361_0', 's1_1361_1', 's1_insr_1355_0', 's1_insr_1355_1', 's1_insr_1361_0', 's1_insr_1361_1']
+	for col in df_merge.columns:
+		if '.erh' in col:
+			cols.append(col)
+			cols.append('class')
+	print('columns to be dropped are: ',cols)
+	df_erh_insr =df_merge.drop(cols,axis=1)
+	print(df_erh_insr.columns)
+
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==207) & (df_erh_insr ['CodeA']==134)])    
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==247) & (df_erh_insr ['CodeA']==169)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==245) & (df_erh_insr ['CodeA']==191)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==245) & (df_erh_insr ['CodeA']==235)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==207) & (df_erh_insr ['CodeA']==134)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==152) & (df_erh_insr ['CodeA']==173)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==247) & (df_erh_insr ['CodeA']==174)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==137) & (df_erh_insr ['CodeA']==233)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==1) & (df_erh_insr ['CodeB']==17) & (df_erh_insr ['CodeA']==71)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==194) & (df_erh_insr ['CodeA']==202)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==194) & (df_erh_insr ['CodeA']==52)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==234) & (df_erh_insr ['CodeA']==173)])
+	print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==245) & (df_erh_insr ['CodeA']==156)])
+	return df_erh_insr
 
 
-
-
-
-
-        print(df_normalized [(df_normalized['CodeC']==192) & (df_normalized ['CodeB']==247) & (df_normalized ['CodeA']==169)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==245) & (df_normalized ['CodeA']==191)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==245) & (df_normalized ['CodeA']==235)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==207) & (df_normalized ['CodeA']==134)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==152) & (df_normalized ['CodeA']==173)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==247) & (df_normalized ['CodeA']==174)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==137) & (df_normalized ['CodeA']==233)])
-        print(df_normalized [(df_normalized ['CodeC']==1) & (df_normalized ['CodeB']==17) & (df_normalized ['CodeA']==71)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==194) & (df_normalized ['CodeA']==202)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==194) & (df_normalized ['CodeA']==52)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==234) & (df_normalized ['CodeA']==173)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==245) & (df_normalized ['CodeA']==156)])
-
-
-
-        return df_normalized
-    def dataPreprocess(df):
-        df=df[(df['S1_SUM']>0)&(df['Richness_SUM']>0)&(df['S1_COUNT']>0)&(df['Richness_COUNT']>0)]
-
-
-
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
-        scope_count = int(len(df)*0.1)
-        df=df.nlargest(scope_count , ['S1_COUNT','Richness_COUNT'])
-
-        print('-------------------------s1 and Richness count----------------------')
-        print(len(df))
-
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
-
-
-
-
-
-        scope_balance = int(len(df)*0.4)
-
-        df=df.nlargest(scope_balance , ['S1_ind','Richness_ind'])
-        print('-------------------------s1 and Richness balance----------------------')
-        print(len(df))
-
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
-        #print(scope_efficiency)
-
-
-
-
-
-
-
-        scope_balance_ind = int(len(df)*0.9)
-
-        df=df.nlargest(scope_balance_ind , 'S1_Richness_balance')
-        print('-------------------------s1 and Richness balance----------------------')
-        print(len(df))
-
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
-        scope_total_Richness = int(len(df)*0.4)
-
-        #print(scope_efficiency)
-        df=df.nlargest(scope_total_Richness , ['Richness_SUM','S1_SUM'])
-        print('-------------------------total Richness----------------------')
-        print(len(df))
-
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
-    
-
-        df=df[(df['S1_ind']>1)&(df['Richness_ind']>1)]
-
-        print(len(df))
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
-
-
-
-        return df
-
-    def outlierFiltering(x,df,round):        
-        gc.collect()
-        
-        n = round
-
-        kde=KernelDensity(kernel='gaussian').fit(x)
-        dens=kde.score_samples(x)
-        #print(dens)            
-
-        average_dens=np.mean(dens)
-        
-                
-        print('average density is: ', average_dens)          
-            
-        if abs(average_dens)<2:
-            min_samples_=2
-        else:
-            min_samples_=int(abs(average_dens))
-        print("min_samples are: ", min_samples_)
-        
-        x_ = np.array(x)
-        dist=[]
-        for i in range (len(x)):
-
-            dist_pair=cdist(np.array(np.reshape(x[i],(1,len(x[i])))),x_,'euclidean')
-            average_dist_= np.mean(dist_pair)
-
-            dist.append(average_dist_)
-            #print(len(dist))
-        print(len(dist))
-        average_dist=max(dist)
-        print('average distance is: ', average_dist)
-        eps_=average_dist/(2*min_samples_)
-
-        print("eps is: ", eps_)
-            
-        
-        print("min_samples are: ", min_samples_)
-        
-        
-        model_classification = DBSCAN(eps=eps_,min_samples=min_samples_)
-
-        y_predict = model_classification.fit_predict(x)
-        df['class'] = y_predict
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
-        df_filtered=df[df['class']!=-1]
-        print(df[df['class']==-1])
-        print(len(df_filtered))
-        '''
-        with open (temp_dir+'eps_minSamples_'+str(n)+'.log','w') as f:
-            f.write(str(eps_)+','+str(min_samples_))
-            f.close()
-        '''
-        return df_filtered
 
 def classification(df_filtered):
-    print(len(df_filtered))
-    df_result = df_filtered
-    x = np.array(df_result[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
-    y_predict,model_name,score_of_determination = ClusteringAnalysis.oneclassSVM(x)
-    #y_predict,model_name  = ClusteringAnalysis.kmeans(df_filtered)
-    #y_predict,model_name = ClusteringAnalysis.oneclassSVM(df_filtered)
-    #y_predict,model_name = ClusteringAnalysis.oneclassSVM_simple(df)
-    #y_predict,model_name  = ClusteringAnalysis.spectral(df_filtered)
+	x = np.array(df_filtered[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
+	y_predict,model_name,score_of_determination = models.oneclassSVM.oneclassSVM(x,opt,currentTime)
+	#y_predict,model_name  = models.clustering.kmeans(df_filtered,opt)
+	#y_predict,model_name = model.oneclassSVM(df_filtered,opt)
+	#y_predict,model_name  = models.clustering.spectral(df_filtered,opt)
+
+	#y_predict,model_name  = models.clustering.birch(df_filtered,opt)
+	#y_predict,model_name  = models.clustering.agglomerativeClustering(df_filtered,opt)
+	#y_predict,model_name  = models.clustering.opticsClustering(df_filtered,opt)
+	df_result=pd.DataFrame()
+	df_result['CodeA']=df_filtered['CodeA']
+	df_result['CodeB']=df_filtered['CodeB']
+	df_result['CodeC']=df_filtered['CodeC']
+	df_result['Score_OSVM'] = score_of_determination
+	df_result['class'] = y_predict
+	df_result = df_result.sort_values(by =['Score_OSVM'],ascending=True)
+	df_result['SCORE_RANK_OSVM']=df_result['Score_OSVM'].rank(ascending=True)
+	#df_result=  df_result.sort_values(by =['Score','performance_ind_0_total','performance_ind_1_total'],ascending=False)
+	#df_result['SCORE_RANK'] = df_result[['Score','performance_ind_0_total','performance_ind_1_total']].apply(tuple,axis=1).rank(method='dense',ascending=False)
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==247) & (df_result ['CodeA']==169)])
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==191)])
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==235)])
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==207) & (df_result ['CodeA']==134)])
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==152) & (df_result ['CodeA']==173)])
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==247) & (df_result ['CodeA']==174)])
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==137) & (df_result ['CodeA']==233)])
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==194) & (df_result ['CodeA']==202)])
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==194) & (df_result ['CodeA']==52)])
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==234) & (df_result ['CodeA']==173)])
+	print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==156)])
+	print(df_result [(df_result ['CodeC']==1) & (df_result ['CodeB']==17) & (df_result ['CodeA']==71)])
+	print(df_result [(df_result ['CodeC']==260) & (df_result ['CodeB']==26) & (df_result ['CodeA']==22)])
+	result_name='output_'+model_name+'.csv'
+	df_result.to_csv(output_dir+result_name)
+	return y_predict,model_name,x,df_result 
 
-    #y_predict,model_name  = ClusteringAnalysis.birch(df_filtered)
-    #y_predict,model_name  = ClusteringAnalysis.agglomerativeClustering(df_filtered)
-    #y_predict,model_name  = ClusteringAnalysis.opticsClustering(df_filtered)
-    df_result['Score_OSVM'] = score_of_determination
-    df_result['class'] = y_predict
-    df_result = df_result.sort_values(by =['Score_OSVM'],ascending=True)
-    df_result['SCORE_RANK_OSVM']=df_result['Score_OSVM'].rank(ascending=True)
 
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==247) & (df_result ['CodeA']==169)])
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==191)])
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==235)])
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==207) & (df_result ['CodeA']==134)])
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==152) & (df_result ['CodeA']==173)])
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==247) & (df_result ['CodeA']==174)])
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==137) & (df_result ['CodeA']==233)])
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==194) & (df_result ['CodeA']==202)])
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==194) & (df_result ['CodeA']==52)])
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==234) & (df_result ['CodeA']==173)])
-    print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==156)])
-    print(df_result [(df_result ['CodeC']==1) & (df_result ['CodeB']==17) & (df_result ['CodeA']==71)])
-    print(df_result [(df_result ['CodeC']==260) & (df_result ['CodeB']==26) & (df_result ['CodeA']==22)])
-    result_name='output_'+model_name+'.csv'
-    df_result.to_csv(output_dir+result_name)
-    return y_predict,model_name,x,df_result 
-
-class similarityAnalysis():
-    def erhAnalysis(erh_dir,df_filtered):
-        print(len(df_filtered))
-        df_merge = df_filtered
-
-        array_1 = [[1,3],[4,6],[7,9],[10,12],[13,15],[16,18]]
-        array_2 = [[2,3],[5,6],[8,9],[11,12],[14,15],[17,18]]
-        col_1355=[]
-        col_insr=[]
-        col_1361=[]    
-        for r,d,f in os.walk(erh_dir):
-            print(r)
-            for m in range(len(array_1)):
-                num_1355 =array_1[m][0]
-                num_1361 =array_2[m][0]
-                num_insr =array_1[m][1]
-                for f_ in f:
-                    if num_1355 == int(f_.split("-")[0]):
-                        #print('pY1355 col file is: ',f_)
-                        col_1355.append(f_)
-                    elif num_1361 == int(f_.split("-")[0]):
-                        #print('pY1361 col file is: ',f_)
-                        col_1361.append(f_)
-                    elif num_insr == int(f_.split("-")[0]):
-                        #print('INSR col file is: ',f_)
-                        col_insr.append(f_)
-            for i in range(len(f)):
-                f_ = f[i]
-                if f_.split(".")[1]=="erh":
-                    if "pY1355" in f_.split(".")[0]:
-                        print('pY1355 file is: ',f_)
-
-                        df_1355 = pd.read_csv(r+f_,names=['CodeA','CodeB','CodeC','S1','Richness'] )
-                        df_1355 = df_1355.sort_values(by=['CodeA','CodeB','CodeC'])
-                        col_name = str(f_)
-                        df_1355[col_name] = df_1355['Richness']
-                        df_1355  = df_1355.drop("Richness",axis=1)
-                        df_1355[col_name+'_S1'] = df_1355['S1']
-                        df_1355 = df_1355.drop("S1",axis=1)
-                        df_merge = df_merge.merge(df_1355,how='left',on=['CodeA','CodeB','CodeC'])
-                    elif "pY1361" in f_.split(".")[0]:
-                        print('pY1361 file is: ',f_)
-                        df_1361 = pd.read_csv(r+f_,names=['CodeA','CodeB','CodeC','S1','Richness'])
-                        df_1361 = df_1361.sort_values(by=['CodeA','CodeB','CodeC'])
-                        col_name = str(f_)
-                        df_1361[col_name] = df_1361['Richness']
-                        df_1361  = df_1361.drop("Richness",axis=1)
-                        df_1361[col_name+'_S1'] = df_1361['S1']
-                        df_1361 = df_1361.drop("S1",axis=1)
-                        df_merge = df_merge.merge(df_1361,how='left',on=['CodeA','CodeB','CodeC'])
-                    elif "INSR" in f_.split(".")[0]:
-                        print('INSR file is: ',f_)
-                        df_ins = pd.read_csv(r+f_,names=['CodeA','CodeB','CodeC','S1','Richness'])
-                        df_ins = df_ins.sort_values(by=['CodeA','CodeB','CodeC'])
-                        print(df_ins [(df_ins ['CodeC']==42) & (df_ins ['CodeB']==703) & (df_ins ['CodeA']==327)])
-                        col_name = str(f_)
-                        df_ins[col_name] = df_ins['Richness']
-                        df_ins = df_ins.drop("Richness",axis=1)
-                        df_ins[col_name+'_S1'] = df_ins['S1']
-                        df_ins = df_ins.drop("S1",axis=1)
-                        df_merge = df_merge.merge(df_ins,how='left',on=['CodeA','CodeB','CodeC'])
-                        print(df_merge [(df_merge ['CodeC']==42) & (df_merge ['CodeB']==703) & (df_merge ['CodeA']==327)])
-
-        df_merge.fillna(0,inplace=True)
-        print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
-        df_col = pd.DataFrame()
-        df_col['col_1355']=col_1355
-        df_col['col_1361']=col_1361
-        df_col['col_insr']=col_insr
-        print(df_col)
-        
-        df_merge['performance_ind_0_total']=0
-        df_merge['richness_1355_0']=0
-        df_merge['richness_1355_1']=0
-        df_merge['performance_ind_1_total']=0
-        df_merge['richness_1361_0']=0
-        df_merge['richness_1361_1']=0
-        df_merge['richness_insr_1355_0']=0
-        df_merge['richness_insr_1355_1']=0
-        df_merge['richness_insr_1361_0']=0
-        df_merge['richness_insr_1361_1']=0
-        df_merge['s1_1355_0']=0
-        df_merge['s1_1355_1']=0
-        df_merge['s1_1361_0']=0
-        df_merge['s1_1361_1']=0
-        df_merge['s1_insr_1355_0']=0
-        df_merge['s1_insr_1355_1']=0
-        df_merge['s1_insr_1361_0']=0
-        df_merge['s1_insr_1361_1']=0
-
-        for i in range(len(df_merge)):
-            richiness_1355_1 = 0.00
-            richiness_1355_0 = 0.00
-            richiness_insr_1355_1 = 0.00
-            richiness_insr_1355_0 = 0.00
-            richiness_1361_1 = 0.00
-            richiness_1361_0 = 0.00
-            richiness_insr_1361_1 = 0.00
-            richiness_insr_1361_0 = 0.00
-            s1_1355_1 = 0.00
-            s1_1355_0 = 0.00
-            s1_insr_1355_1 = 0.00
-            s1_insr_1355_0 = 0.00
-            s1_1361_1 = 0.00
-            s1_1361_0 = 0.00
-            s1_insr_1361_1 = 0.00
-            s1_insr_1361_0 = 0.00
-            performance_total_1355 = 0
-            performance_total_1361 = 0
-            for j in range(len(df_col)):
-                col_1355_ = df_col['col_1355'].values[j]
-                col_1361_ = df_col['col_1361'].values[j]
-                col_insr_ = df_col['col_insr'].values[j]
-                col_1355_S1 = df_col['col_1355'].values[j]+'_S1'
-                col_1361_S1 = df_col['col_1361'].values[j]+'_S1'
-                col_insr_S1 = df_col['col_insr'].values[j]+'_S1'
-                #print(col_1355_,col_insr_)   
-                if df_merge[col_1355_].values[i]>=df_merge[col_insr_].values[i]:
-                    richiness_1355_1+=df_merge[col_1355_].values[i]
-                    richiness_insr_1355_1+=df_merge[col_insr_].values[i]
-                    s1_1355_1+=df_merge[col_1355_S1].values[i]
-                    s1_insr_1355_1+=df_merge[col_insr_S1].values[i]
-                    performance_total_1355+=1
-                else:
-                    richiness_1355_0+=df_merge[col_1355_].values[i]
-                    performance_total_1355+=0
-                    richiness_insr_1355_0+=df_merge[col_insr_].values[i]
-                    s1_1355_0+=df_merge[col_1355_S1].values[i]
-                    s1_insr_1355_0+=df_merge[col_insr_S1].values[i]
-                #print(col_1361_,col_insr_)   
-                if df_merge[col_1361_].values[i]>=df_merge[col_insr_].values[i]:
-                    richiness_1361_1+=df_merge[col_1361_].values[i]
-                    richiness_insr_1361_1+=df_merge[col_insr_].values[i]
-                    performance_total_1361+=1
-                    s1_1361_1+=df_merge[col_1361_S1].values[i]
-                    s1_insr_1361_1+=df_merge[col_insr_S1].values[i]
-                else:
-                    richiness_1361_0+=df_merge[col_1361_].values[i]
-                    performance_total_1361+=0
-                    richiness_insr_1361_0+=df_merge[col_insr_].values[i]
-                    s1_1361_0+=df_merge[col_1361_S1].values[i]
-                    s1_insr_1361_0+=df_merge[col_insr_S1].values[i]
-            df_merge['performance_ind_0_total'].values[i]=performance_total_1355
-            df_merge['richness_1355_0'].values[i]=richiness_1355_0
-            df_merge['richness_1355_1'].values[i]=richiness_1355_1
-            df_merge['performance_ind_1_total'].values[i]=performance_total_1361
-            df_merge['richness_1361_0'].values[i]=richiness_1361_0
-            df_merge['richness_1361_1'].values[i]=richiness_1361_1
-            df_merge['richness_insr_1355_0'].values[i]=richiness_insr_1355_0
-            df_merge['richness_insr_1355_1'].values[i]=richiness_insr_1355_1
-            df_merge['richness_insr_1361_0'].values[i]=richiness_insr_1361_0
-            df_merge['richness_insr_1361_1'].values[i]=richiness_insr_1361_1
-            df_merge['s1_1355_0'].values[i]=s1_1355_0
-            df_merge['s1_1355_1'].values[i]=s1_1355_1
-            df_merge['s1_1361_0'].values[i]=s1_1361_0
-            df_merge['s1_1361_1'].values[i]=s1_1361_1
-            df_merge['s1_insr_1355_0'].values[i]=s1_insr_1355_0
-            df_merge['s1_insr_1355_1'].values[i]=s1_insr_1355_1
-            df_merge['s1_insr_1361_0'].values[i]=s1_insr_1361_0
-            df_merge['s1_insr_1361_1'].values[i]=s1_insr_1361_1
-        print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
-        df_merge['total_pY1355_mixed']=0
-        df_merge['total_pY1361_mixed']=0
-        df_merge['total_insr_pY1355_mixed']=0
-        df_merge['total_insr_pY1361_mixed']=0
-        df_merge['s1_pY1355_mixed']=0
-        df_merge['s1_pY1361_mixed']=0
-        df_merge['s1_insr_pY1355_mixed']=0
-        df_merge['s1_insr_pY1361_mixed']=0
-        for i in range(len(df_merge)):
-            if df_merge['performance_ind_0_total'].values[i]>=3:
-                df_merge['total_pY1355_mixed'].values[i]=df_merge['richness_1355_1'].values[i]
-                df_merge['total_insr_pY1355_mixed'].values[i]=df_merge['richness_insr_1355_1'].values[i]
-                df_merge['s1_pY1355_mixed'].values[i]=df_merge['s1_1355_1'].values[i]
-                df_merge['s1_insr_pY1355_mixed'].values[i]=df_merge['s1_insr_1355_1'].values[i]
-            else:
-                df_merge['total_pY1355_mixed'].values[i]=df_merge['richness_1355_0'].values[i]
-                df_merge['total_insr_pY1355_mixed'].values[i]=df_merge['richness_insr_1355_0'].values[i]
-                df_merge['s1_pY1355_mixed'].values[i]=df_merge['s1_1355_0'].values[i]
-                df_merge['s1_insr_pY1355_mixed'].values[i]=df_merge['s1_insr_1355_0'].values[i]
-        for i in range(len(df_merge)):
-            if df_merge['performance_ind_1_total'].values[i]>=3:
-                df_merge['total_pY1361_mixed'].values[i]=df_merge['richness_1361_1'].values[i]
-                df_merge['total_insr_pY1361_mixed'].values[i]=df_merge['richness_insr_1361_1'].values[i]
-                df_merge['s1_pY1361_mixed'].values[i]=df_merge['s1_1361_1'].values[i]
-                df_merge['s1_insr_pY1361_mixed'].values[i]=df_merge['s1_insr_1361_1'].values[i]
-            else:
-                df_merge['total_pY1361_mixed'].values[i]=df_merge['richness_1361_0'].values[i]
-                df_merge['total_insr_pY1361_mixed'].values[i]=df_merge['richness_insr_1361_0'].values[i]
-                df_merge['s1_pY1361_mixed'].values[i]=df_merge['s1_1361_0'].values[i]
-                df_merge['s1_insr_pY1361_mixed'].values[i]=df_merge['s1_insr_1361_0'].values[i]
-        print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
-        df_merge['total_pY1355']=0
-        df_merge['total_pY1361']=0
-        df_merge['total_insr']=0
-        df_merge['s1_pY1355']=0
-        df_merge['s1_pY1361']=0
-        df_merge['s1_insr']=0
-        for col in df_merge.columns:
-            if "pY1355.erh_S1" in col:
-                df_merge['s1_pY1355'] = df_merge['s1_pY1355']+df_merge[str(col)]
-            elif "pY1355.erh" in col:
-                df_merge['total_pY1355'] = df_merge['total_pY1355']+df_merge[str(col)]
-            elif "pY1361.erh_S1" in col:
-                df_merge['s1_pY1361'] = df_merge['s1_pY1361']+df_merge[str(col)]
-            elif "pY1361.erh" in col:
-                df_merge['total_pY1361'] = df_merge['total_pY1361']+df_merge[str(col)]
-            elif "INSR.erh_S1" in col:
-                df_merge['s1_insr'] = df_merge['s1_insr']+df_merge[str(col)]
-            elif "INSR.erh" in col:
-                df_merge['total_insr'] = df_merge['total_insr']+df_merge[str(col)]
-        print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
-        #df_erh_insr = df_merge[['CodeA', 'CodeB', 'CodeC','total_pY1355','total_pY1361','total_insr','total_pY1355_mixed','total_pY1361_mixed','total_insr_pY1355_mixed','total_insr_pY1361_mixed']]
-        #df_erh_insr.fillna(0,inplace=True)
-        #df_erh_insr=df_merge
-        
-        cols=['richness_1355_0', 'richness_1355_1', 'richness_1361_0', 'richness_1361_1', 'richness_insr_1355_0', 'richness_insr_1355_1', 'richness_insr_1361_0', 'richness_insr_1361_1', 's1_1355_0', 's1_1355_1', 's1_1361_0', 's1_1361_1', 's1_insr_1355_0', 's1_insr_1355_1', 's1_insr_1361_0', 's1_insr_1361_1']
-        for col in df_merge.columns:
-            if '.erh' in col:
-                cols.append(col)
-                cols.append('class')
-        print('columns to be dropped are: ',cols)
-        df_erh_insr =df_merge.drop(cols,axis=1)
-        print(df_erh_insr.columns)
-
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==207) & (df_erh_insr ['CodeA']==134)])    
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==247) & (df_erh_insr ['CodeA']==169)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==245) & (df_erh_insr ['CodeA']==191)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==245) & (df_erh_insr ['CodeA']==235)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==207) & (df_erh_insr ['CodeA']==134)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==152) & (df_erh_insr ['CodeA']==173)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==247) & (df_erh_insr ['CodeA']==174)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==137) & (df_erh_insr ['CodeA']==233)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==1) & (df_erh_insr ['CodeB']==17) & (df_erh_insr ['CodeA']==71)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==194) & (df_erh_insr ['CodeA']==202)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==194) & (df_erh_insr ['CodeA']==52)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==234) & (df_erh_insr ['CodeA']==173)])
-        print(df_erh_insr [(df_erh_insr ['CodeC']==192) & (df_erh_insr ['CodeB']==245) & (df_erh_insr ['CodeA']==156)])
-        return df_erh_insr
-
-
-
-    def classification(df_filtered):
-        x = np.array(df_filtered[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
-        y_predict,model_name,score_of_determination = ClusteringAnalysis.oneclassSVM(x)
-        #y_predict,model_name  = ClusteringAnalysis.kmeans(df_filtered)
-        #y_predict,model_name = ClusteringAnalysis.oneclassSVM(df_filtered)
-        #y_predict,model_name = ClusteringAnalysis.oneclassSVM_simple(df)
-        #y_predict,model_name  = ClusteringAnalysis.spectral(df_filtered)
-
-        #y_predict,model_name  = ClusteringAnalysis.birch(df_filtered)
-        #y_predict,model_name  = ClusteringAnalysis.agglomerativeClustering(df_filtered)
-        #y_predict,model_name  = ClusteringAnalysis.opticsClustering(df_filtered)
-        df_result=pd.DataFrame()
-        df_result['CodeA']=df_filtered['CodeA']
-        df_result['CodeB']=df_filtered['CodeB']
-        df_result['CodeC']=df_filtered['CodeC']
-        df_result['Score_OSVM'] = score_of_determination
-        df_result['class'] = y_predict
-        df_result = df_result.sort_values(by =['Score_OSVM'],ascending=True)
-        df_result['SCORE_RANK_OSVM']=df_result['Score_OSVM'].rank(ascending=True)
-        #df_result=  df_result.sort_values(by =['Score','performance_ind_0_total','performance_ind_1_total'],ascending=False)
-        #df_result['SCORE_RANK'] = df_result[['Score','performance_ind_0_total','performance_ind_1_total']].apply(tuple,axis=1).rank(method='dense',ascending=False)
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==247) & (df_result ['CodeA']==169)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==191)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==235)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==207) & (df_result ['CodeA']==134)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==152) & (df_result ['CodeA']==173)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==247) & (df_result ['CodeA']==174)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==137) & (df_result ['CodeA']==233)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==194) & (df_result ['CodeA']==202)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==194) & (df_result ['CodeA']==52)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==234) & (df_result ['CodeA']==173)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==156)])
-        print(df_result [(df_result ['CodeC']==1) & (df_result ['CodeB']==17) & (df_result ['CodeA']==71)])
-        print(df_result [(df_result ['CodeC']==260) & (df_result ['CodeB']==26) & (df_result ['CodeA']==22)])
-        result_name='output_'+model_name+'.csv'
-        df_result.to_csv(output_dir+result_name)
-        return y_predict,model_name,x,df_result 
-
-    def ipcaAnalysis(df_erh_insr,df_result):
-        gc.collect()
-        print(df_erh_insr.columns)
-
-        df_erh_insr=df_result.merge(df_erh_insr,how='left',on=['CodeA','CodeB','CodeC'])
-        df_erh_insr_ = df_erh_insr[['total_pY1355','total_pY1361','total_insr','total_pY1355_mixed','total_pY1361_mixed','total_insr_pY1355_mixed','total_insr_pY1361_mixed','s1_pY1355','s1_pY1361','s1_insr','s1_pY1355_mixed','s1_pY1361_mixed','s1_insr_pY1355_mixed','s1_insr_pY1361_mixed']]
-        df_erh_insr_normalized =  pd.DataFrame(scaler.fit_transform(df_erh_insr_.values),columns=df_erh_insr_.columns+'_normalized',index=df_erh_insr_.index)
-
-        df_erh_insr_ipca = pd.concat((df_erh_insr,df_erh_insr_normalized),axis=1)
-        x_normalized_1355 = np.array(df_erh_insr_ipca[['total_insr_normalized','total_pY1355_normalized']])    
- 
-        #x_normalized_1355 = np.array(df_erh_insr_ipca[['total_insr','total_pY1355']])    
-        #x_normalized_1361 = np.array(df_erh_insr_ipca[['total_insr','total_pY1361']])   
-        x_ipca_1355 = ClusteringAnalysis.ipca(x_normalized_1355,2 )
-        print(x_ipca_1355)
-        df_erh_insr_ipca['total_insr_1355_ipca'] = x_ipca_1355[:,0] 
-        df_erh_insr_ipca['total_pY1355_ipca'] = x_ipca_1355[:,1] 
-        x_normalized_1361 = np.array(df_erh_insr_ipca[['total_insr_normalized','total_pY1361_normalized']])  
-        x_ipca_1361 = ClusteringAnalysis.ipca(x_normalized_1361,2 )
-        df_erh_insr_ipca['total_insr_1361_ipca'] = x_ipca_1361[:,0] 
-        df_erh_insr_ipca['total_pY1361_ipca'] = x_ipca_1361[:,1] 
-        x_normalized_1355_mixed = np.array(df_erh_insr_ipca[['total_insr_pY1355_mixed_normalized','total_pY1355_mixed_normalized']]) 
-
-        #x_normalized_1355_mixed = np.array(df[['total_insr','total_pY1355']])    
-        #x_normalized_1361_mixed = np.array(df[['total_insr','total_pY1361']])   
-        x_ipca_1355_mixed= ClusteringAnalysis.ipca(x_normalized_1355_mixed,2 )
-        df_erh_insr_ipca['total_insr_pY1355_mixed_ipca'] = x_ipca_1355_mixed[:,0] 
-        df_erh_insr_ipca['total_pY1355_mixed_ipca'] = x_ipca_1355_mixed[:,1] 
-        x_normalized_1361_mixed = np.array(df_erh_insr_ipca[['total_insr_pY1361_mixed_normalized','total_pY1361_mixed_normalized']])  
-        x_ipca_1361_mixed = ClusteringAnalysis.ipca(x_normalized_1361_mixed,2 )
-        df_erh_insr_ipca['total_insr_pY1361_mixed_ipca'] = x_ipca_1361_mixed[:,0] 
-        df_erh_insr_ipca['total_pY1361_mixed_ipca'] = x_ipca_1361_mixed[:,1]
-
-        x_erh_1355_insr_normalized = np.array(df_erh_insr_ipca[['total_pY1355_normalized','s1_pY1355_normalized','total_insr_normalized','s1_insr_normalized']])    
- 
-        #x_normalized_1355 = np.array(df_erh_insr_ipca[['total_insr','total_pY1355']])    
-        #x_normalized_1361 = np.array(df_erh_insr_ipca[['total_insr','total_pY1361']])   
-        x_erh_1355_ipca = ClusteringAnalysis.ipca(x_erh_1355_insr_normalized ,3 )
-        print(x_erh_1355_ipca.shape)
-        df_erh_insr_ipca['pY1355_ipca_x'] = x_erh_1355_ipca[:,0] 
-        df_erh_insr_ipca['pY1355_ipca_y'] =  x_erh_1355_ipca[:,1] 
-        df_erh_insr_ipca['pY1355_ipca_z'] =  x_erh_1355_ipca[:,2] 
-
-        x_erh_1361_insr_normalized = np.array(df_erh_insr_ipca[['total_pY1361_normalized','s1_pY1361_normalized','total_insr_normalized','s1_insr_normalized']])    
- 
-        #x_normalized_1355 = np.array(df_erh_insr_ipca[['total_insr','total_pY1355']])    
-        #x_normalized_1361 = np.array(df_erh_insr_ipca[['total_insr','total_pY1361']])   
-        x_erh_1361_ipca = ClusteringAnalysis.ipca(x_erh_1361_insr_normalized ,3 )
-        print(x_erh_1361_ipca.shape)
-        df_erh_insr_ipca['pY1361_ipca_x'] = x_erh_1361_ipca[:,0] 
-        df_erh_insr_ipca['pY1361_ipca_y'] =  x_erh_1361_ipca[:,1] 
-        df_erh_insr_ipca['pY1361_ipca_z'] =  x_erh_1361_ipca[:,2] 
-
-        x_erh_insr_1355_normalized_mixed = np.array(df_erh_insr_ipca[['total_pY1355_mixed_normalized','s1_pY1355_mixed_normalized','total_insr_pY1355_mixed_normalized','s1_insr_pY1355_mixed_normalized']]) 
-
-        #x_normalized_1355_mixed = np.array(df[['total_insr','total_pY1355']])    
-        #x_normalized_1361_mixed = np.array(df[['total_insr','total_pY1361']])   
-        x_erh_1355_ipca_mixed= ClusteringAnalysis.ipca(x_erh_insr_1355_normalized_mixed,3 )
-        df_erh_insr_ipca['pY1355_mixed_ipca_x'] = x_erh_1355_ipca_mixed[:,0] 
-        df_erh_insr_ipca['pY1355_mixed_ipca_y'] = x_erh_1355_ipca_mixed[:,1] 
-        df_erh_insr_ipca['pY1355_mixed_ipca_z'] = x_erh_1355_ipca_mixed[:,2] 
-        x_erh_insr_1361_normalized_mixed = np.array(df_erh_insr_ipca[['total_pY1361_mixed_normalized','s1_pY1361_mixed_normalized','total_insr_pY1361_mixed_normalized','s1_insr_pY1361_mixed_normalized']]) 
-
-        #x_normalized_1355_mixed = np.array(df[['total_insr','total_pY1355']])    
-        #x_normalized_1361_mixed = np.array(df[['total_insr','total_pY1361']])   
-        x_erh_1361_ipca_mixed= ClusteringAnalysis.ipca(x_erh_insr_1361_normalized_mixed,3 )
-        df_erh_insr_ipca['pY1361_mixed_ipca_x'] = x_erh_1361_ipca_mixed[:,0] 
-        df_erh_insr_ipca['pY1361_mixed_ipca_y'] = x_erh_1361_ipca_mixed[:,1] 
-        df_erh_insr_ipca['pY1361_mixed_ipca_z'] = x_erh_1361_ipca_mixed[:,2] 
-
-        return df_erh_insr_ipca
-    def similarity(df_erh_insr_ipca,model_name):
-        gc.collect()
-        model_names = ['kmeans','AgglmerativeClustering']
-        #print(df_result.columns)
-
-        #print(df_erh_insr_ipca.columns)
-        #df_ = df_erh_insr_ipca.drop('class',axis=1)
-        #df= df_result.merge(df_erh_insr_ipca,how='left',on=['CodeA','CodeB','CodeC'])
-        df = df_erh_insr_ipca
-        print(df.columns)
-
-
-        y_min_1355 = min(df['total_pY1355_ipca'] )
-        y_min_1361 = min(df['total_pY1361_ipca'] )
-        x_min_1355 = min(df['total_insr_1355_ipca'])
-        x_min_1361= min(df['total_insr_1361_ipca'])
-        x_argmin_1355 = df['total_insr_1355_ipca']  [np.argmin(df['total_pY1355_ipca'])]
-        x_argmin_1361 = df['total_insr_1361_ipca']  [np.argmin(df['total_pY1361_ipca'])]   
-        y_argmin_1355 = df['total_pY1355_ipca']  [np.argmin(df['total_insr_1355_ipca'])]
-        y_argmin_1361 = df['total_pY1361_ipca']  [np.argmin(df['total_insr_1361_ipca'])]   
-        x_min = min(df['total_insr'])
-        print(x_min_1355,y_min_1355)
-        print(x_min_1361,y_min_1361 )
-        erh_array_1355 = np.array(df[['total_insr_1355_ipca','total_pY1355_ipca']])
-        erh_array_1361 = np.array(df[['total_insr_1361_ipca','total_pY1361_ipca']])
-        df_xmin_pY1355= df[df['total_insr_1355_ipca']<x_argmin_1355]
-        df_xymin_pY1355 = df_xmin_pY1355[df_xmin_pY1355['total_pY1355_ipca']<y_argmin_1355]
-        if len(df_xymin_pY1355)>0:
-            ct_ind_pY1355= 1
-        else:
-            ct_ind_pY1355 = 0
-        df_xmin_pY1361= df[df['total_insr_1361_ipca']<x_argmin_1361]
-        df_xymin_pY1361 = df_xmin_pY1361[df_xmin_pY1361['total_pY1361_ipca']<y_argmin_1361]
-        if len(df_xymin_pY1361)>0:
-            ct_ind_pY1361= 1
-        else:
-            ct_ind_pY1361 = 0
-        x_min = min(df['total_insr'])
-        #df['Similarity_point_pY1355'] = utils.distanceCP(erh_array_1355,c_1355)
-        #df['Similarity_point_pY1361'] = utils.distanceCP(erh_array_1361,c_1361)
-        if ct_ind_pY1355 == 1:
-            x_min_1355_ipca = x_argmin_1355 
-            df['Similarity_centralLine_pY1355'] = ( df['total_insr_1355_ipca']-x_min_1355_ipca)
-            c_1355 = [x_min_1355_ipca,y_min_1355]
-            df['Similarity_point_pY1355'] = utils.distanceCP(erh_array_1355,c_1355)
-        else:
-            y_min_1355_ipca = df['total_pY1355_ipca']  [np.argmin(df['total_insr_1355_ipca'])]
-            df['Similarity_centralLine_pY1355'] = ( df['total_pY1355_ipca']-y_min_1355_ipca)
-            c_1355 = [x_min_1355,y_min_1355_ipca]
-            df['Similarity_point_pY1355'] = utils.distanceCP(erh_array_1355,c_1355)
-        if ct_ind_pY1361 == 1:
-            x_min_1361_ipca = x_argmin_1361
-            df['Similarity_centralLine_pY1361'] = ( df['total_insr_1361_ipca']-x_min_1361_ipca)
-            c_1361 = [x_min_1361_ipca,y_min_1361]   
-            print(c_1361 )
-            df['Similarity_point_pY1361'] = utils.distanceCP(erh_array_1361,c_1361)
-        else:
-            y_min_1361_ipca = df['total_pY1361_ipca']  [np.argmin(df['total_insr_1361_ipca'])]
-            df['Similarity_centralLine_pY1361'] = ( df['total_pY1361_ipca']-y_min_1361_ipca)
-            c_1361 = [x_min_1361,y_min_1361_ipca]   
-            df['Similarity_point_pY1361'] = utils.distanceCP(erh_array_1361,c_1361)
-        df['Similarity_pY1355']=df['Similarity_point_pY1355'] + abs(df['Similarity_centralLine_pY1355'])
-        df['Similarity_pY1361']=df['Similarity_point_pY1361'] + abs(df['Similarity_centralLine_pY1361'])
-
-        y_min_1355_mixed = min(df['total_pY1355_mixed_ipca'])
-        y_min_1361_mixed= min(df['total_pY1361_mixed_ipca'])
-        x_min_1355_mixed = min(df['total_insr_pY1355_mixed_ipca'])
-        x_min_1361_mixed= min(df['total_insr_pY1361_mixed_ipca'])
-
-        x_argmin_1355_mixed =  df['total_insr_pY1355_mixed_ipca']  [np.argmin(df['total_pY1355_mixed_ipca'])]
-        x_argmin_1361_mixed= df['total_insr_pY1361_mixed_ipca']  [np.argmin(df['total_pY1361_mixed_ipca'])]   
-        y_argmin_1355_mixed = df['total_pY1355_mixed_ipca']  [np.argmin(df['total_insr_1355_ipca'])]
-        y_argmin_1361_mixed = df['total_pY1361_mixed_ipca']  [np.argmin(df['total_insr_1361_ipca'])]   
-        erh_array_1355_mixed = np.array(df[['total_insr_pY1355_mixed_ipca','total_insr_pY1355_mixed_ipca']])
-        erh_array_1361_mixed = np.array(df[['total_insr_pY1361_mixed_ipca','total_insr_pY1361_mixed_ipca']])
-        print(x_min_1355_mixed,x_min_1361_mixed,y_min_1355_mixed,y_min_1361_mixed)
-        print(x_min_1355_mixed,x_min_1361_mixed,x_argmin_1355_mixed,y_min_1361_mixed,x_argmin_1361_mixed)
-        df_xmin_pY1355_mixed= df[df['total_insr_pY1355_mixed_ipca']<x_argmin_1355_mixed]
-        df_xymin_pY1355_mixed = df_xmin_pY1355_mixed[df_xmin_pY1355_mixed['total_pY1355_mixed_ipca']<y_argmin_1355_mixed]
-        if len(df_xymin_pY1355_mixed)>0:
-            ct_ind_pY1355_mixed= 1
-        else:
-            ct_ind_pY1355_mixed = 0
-        df_xmin_pY1361_mixed= df[df['total_insr_pY1361_mixed_ipca']<x_argmin_1361_mixed]
-        df_xymin_pY1361_mixed = df_xmin_pY1361_mixed[df_xmin_pY1361_mixed['total_pY1361_mixed_ipca']<y_argmin_1361_mixed]
-        if len(df_xymin_pY1361_mixed)>0:
-            ct_ind_pY1361_mixed= 1
-        else:
-            ct_ind_pY1361_mixed = 0
-
-
-        
-        if ct_ind_pY1355_mixed == 1:
-
-            df['Similarity_antiinsr_1355'] = 1/(df['total_insr_pY1355_mixed_ipca']-x_min_1355_mixed)
-            y_min_1355_mixed_ipca = y_min_1355_mixed 
-            x_min_1355_mixed_ipca = x_argmin_1355_mixed 
-            df['Similarity_centralLine_pY1355_mixed_ipca'] = ( df['total_insr_pY1355_mixed_ipca']-x_min_1355_mixed_ipca)
-            c_1355_mixed = [x_min_1355_mixed_ipca,y_min_1355_mixed_ipca]
-            df['Similarity_point_pY1355_mixed'] = utils.distanceCP(erh_array_1355_mixed,c_1355_mixed)
-            print('central line is along fixed x ',  x_min_1355_mixed_ipca )
-        else:
-
-            df['Similarity_antiinsr_1355'] = 1/(df['total_pY1355_mixed_ipca']-y_min_1355_mixed)
-            x_min_1355_mixed_ipca = x_min_1355_mixed
-            y_min_1355_mixed_ipca = df['total_pY1355_mixed_ipca']  [np.argmin(df['total_insr_pY1355_mixed_ipca'])]
-            
-            df['Similarity_centralLine_pY1355_mixed_ipca'] = ( df['total_pY1355_mixed_ipca']-y_min_1355_mixed_ipca)
-            c_1355_mixed = [x_min_1355_mixed_ipca,y_min_1355_mixed_ipca]
-            df['Similarity_point_pY1355_mixed'] = utils.distanceCP(erh_array_1355_mixed,c_1355_mixed)
-            print('central line is along fixed y ', y_min_1355_mixed_ipca )
-        if ct_ind_pY1361_mixed == 1:
-
-            df['Similarity_antiinsr_1361'] = 1/(df['total_insr_pY1361_mixed_ipca']-x_min_1361_mixed)
-            y_min_1361_mixed_ipca = y_min_1361_mixed 
-            x_min_1361_mixed_ipca = x_argmin_1361_mixed
-            df['Similarity_centralLine_pY1361_mixed_ipca'] = ( df['total_insr_pY1361_mixed_ipca']-x_min_1361_mixed_ipca)
-            c_1361_mixed = [x_min_1361_mixed_ipca,y_min_1361_mixed_ipca]   
-            print('central line is along fixed x ',  x_min_1361_mixed_ipca )
-            print(c_1361_mixed )
-            df['Similarity_point_pY1361_mixed'] = utils.distanceCP(erh_array_1361_mixed,c_1361_mixed)
-        else:
-
-            df['Similarity_antiinsr_1361'] = 1/(df['total_pY1361_mixed_ipca']-y_min_1355_mixed)
-            x_min_1361_mixed_ipca =  x_min_1361_mixed
-            y_min_1361_mixed_ipca = df['total_pY1361_mixed_ipca']  [np.argmin(df['total_insr_pY1361_mixed_ipca'])]
-            df['Similarity_centralLine_pY1361_mixed_ipca'] = ( df['total_pY1361_mixed_ipca']-y_min_1361_mixed_ipca)
-            c_1361_mixed = [x_min_1361_mixed_ipca,y_min_1361_mixed_ipca]   
-            df['Similarity_point_pY1361_mixed'] = utils.distanceCP(erh_array_1361_mixed,c_1361_mixed)
-            print('central line is along fixed y ', y_min_1361_mixed_ipca )
-        df_0 = df[df['class']==0]
-        df_1 = df[df['class']==1]
-        x_0= df_0[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']]
-        x_0=np.array(x_0)
-        x_1= df_1[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']]
-        x_1=np.array(x_1)
-        if model_name=='OneClassSVM':
-            df_0['Similarity']=df_0['Score_OSVM']
-            df_1['Similarity']=df_1['Score_OSVM']        
-        else:
-            df_0['Similarity']=utils.boundary(x_0,x_1)
-            df_1['Similarity']=utils.boundary(x_1,x_0)
-        df_similarity=pd.concat((df_0,df_1),axis=0)
-        print(model_name, df_0['Similarity'])
-
-        return df_similarity
-  
-
-class ClusteringAnalysis():
-    def logProbability(x):
-        #print(model)
-        #model_orig = OneClassSVM(kernel='rbf',gamma='auto',nu=0.8,coef0=0.1,tol=1e-5)
-        #x = np.reshape(x,(len(x),1))
-        #model = model_orig.fit(x)
-        score = model.score_samples(x)
-        score[score==0]=1
-        #print(score[score==0])
-        f = np.log(score)
-        #print(f[f==np.inf])
-        #print(f[f==-np.inf])
-
-        return f
-    def opticsClustering(df):
-        gc.collect()
-        #x = np.array(df[['Richness_SUM','Richness_COUNT','S1_SUM','S1_COUNT']])
-        x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
-        df_result = df
-        ordering,core_distances,reachability,predecessor=compute_optics_graph(x,min_samples=2,max_eps=np.inf,metric='euclidean',p=2,metric_params=None,algorithm='auto',leaf_size=2,n_jobs=None)
-        labels,clusters=cluster_optics_xi(reachability=reachability,predecessor=predecessor,ordering=ordering,min_samples=2,xi=0.00001)
-        #model = OPTICS(metric='euclidean')
-        #x = np.reshape(x,(len(x),1))
-        #model = model.fit(x)
-        #y_predict = model.labels_
-        y_predict = labels
-        df_result['class'] = y_predict
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        df_result.to_csv(output_dir+'labels_opticsClustering.csv',chunksize=1000)
-        #score_of_determination = model.score(x,y)
-
-        #print('Score of model is: ',score_of_determination)
-        model_name='optics'
-        result_name='output_'+model_name+'.csv'
-        df_result.to_csv(output_dir+result_name)
-        return y_predict,model_name,x,df_result
-    def kmeans(df):
-        gc.collect()
-        #x = np.array(df[['Richness_SUM','Richness_COUNT','Richness_STDEV']])
-        #x = np.array(df[['S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']])
-        #x = np.array(df[['Richness_SUM','Richness_COUNT','S1_SUM','S1_COUNT']])
-        x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
-        df_result = df
-        model = KMeans(n_clusters=2,init='k-means++',algorithm='lloyd',tol=5e-4)
-        #x = np.reshape(x,(len(x),1))
-        model = model.fit(x)
-        y_predict = model.predict(x)
-        df_result['class'] = y_predict
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        df_result.to_csv(output_dir+'labels_kmeans.csv',chunksize=1000)
-        #y_predict = model.predict(x)
-        score_of_determination = model.score(x)
-
-        print('Score of model is: ',score_of_determination)
-        model_name='kmeans'
-        result_name='output_'+model_name+'.csv'
-        df_result.to_csv(output_dir+result_name)
-        return y_predict,model_name,x,df_result
-    
-    def oneclassSVM(x):
-        global model
-        #df['Richness_STDEV']=1/df['Richness_STDEV']
-        #df['S1_STDEV']=1/df['S1_STDEV']
-        #x = np.array(df[['S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']])
-        #x = np.array(df[['Richness_SUM','Richness_COUNT','S1_SUM','S1_COUNT']])
-
-
-        #model = SVR(kernel='linear',gamma='scale',tol=0.001,epsilon=0.01)
-        #model = SVC(kernel='linear',gamma='scale',tol=0.0005,epsilon=0.0001)
-        model = OneClassSVM(kernel='rbf',gamma='auto',nu=0.8,coef0=0.1,tol=1e-5)
-        #x = np.reshape(x,(len(x),1))
-        model = model.fit(x)
-        y_predict = model.predict(x)
-        score_of_determination = model.score_samples(x)
-        #x_shap_orig = pd.DataFrame(x,columns=['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT'])
-        x_shap_orig = pd.DataFrame(x,columns=['Enrichment_SUM','Enrichment_STDEV','Enrichment_COUNT','S1_SUM','S1_STDEV','S1_COUNT'])
-        x_shap = shap.sample(x_shap_orig,1000)
-        x_shap.to_csv('oneClass_x.csv')
-        
-        explainer_kernel = shap.KernelExplainer(ClusteringAnalysis.logProbability,x_shap)
-        #explainer_kernel = shap.KernelExplainer(model.score_samples,x_shap)
-        shap_values_kernel=explainer_kernel(x_shap)
-        expected_value_kernel = explainer_kernel.expected_value
-        print(expected_value_kernel)
-        print(shap_values_kernel)
-        print(shap_values_kernel[0])
-        plt.figure()
-        #plt.title('Clustering') 
-        shap.plots.waterfall(shap_values_kernel[0],show=False)        
-        fig22=plt.gcf()
-        fig22.legend()
-        png_name='OCSVM_kernel_waterfall_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-
-
-
-        plt.figure()
-        shap.summary_plot(shap_values_kernel,x_shap,show=False)        
-        fig24=plt.gcf()
-        fig24.legend()
-        png_name='OCSVM_kernel_summaryplot_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-        
-        plt.figure()
-
-        #plt.title('Clustering') 
-
-        shap.plots.scatter(shap_values_kernel[:,'Enrichment_SUM'],color=shap_values_kernel[:,'Enrichment_COUNT'],show=False)        
-        fig25=plt.gcf()
-        fig25.legend()
-        png_name='OCSVM_kernel_scatter_Enrichmentsum_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        shap.plots.scatter(shap_values_kernel[:,'S1_SUM'],color=shap_values_kernel,show=False)        
-        fig26=plt.gcf()
-        fig26.legend()
-        png_name='OCSVM_kernel_scatter_s1sum_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        shap.plots.scatter(shap_values_kernel[:,'S1_STDEV'],color=shap_values_kernel,show=False)        
-        fig27=plt.gcf()
-        fig27.legend()
-        png_name='OCSVM_kernel_scatter_s1stdev_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        shap.plots.scatter(shap_values_kernel[:,'Enrichment_STDEV'],color=shap_values_kernel,show=False)        
-        fig28=plt.gcf()
-        fig28.legend()
-        png_name='OCSVM_kernel_scatter_Enrichmentstdev_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        shap.plots.scatter(shap_values_kernel[:,'Enrichment_COUNT'],color=shap_values_kernel,show=False)        
-        fig29=plt.gcf()
-        fig29.legend()
-        png_name='OCSVM_kernel_scatter_Enrichmentcount_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        shap.plots.scatter(shap_values_kernel[:,'S1_COUNT'],color=shap_values_kernel,show=False)        
-        fig30=plt.gcf()
-        fig30.legend()
-        png_name='OCSVM_kernel_scatter_s1count_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-
-        plt.figure()
-        png_name='OCSVM_kernel_forceplot_'+str(currentTime)+'.png'
-        #shap.plots.force(shap_values_kernel[0],matplotlib=True,show=False,plot_cmap='DrDb')   
-        
-        #shap.force_plot(np.round(expected_value_kernel,4),np.round(shap_values_kernel.values[0,:],4),np.round(x_shap.iloc[0,:],4),matplotlib=True,show=False,plot_cmap='DrDb').savefig(graph_dir+png_name)   
-        shap.force_plot(np.round(expected_value_kernel,4),np.round(shap_values_kernel.values[0,:],4),np.round(x_shap.iloc[0,:],4),matplotlib=True,show=False,plot_cmap='DrDb').savefig(graph_dir+png_name)  
-        #plt.show()
-        plt.close()
-        
-        plt.figure()
-        #plt.title('Clustering') 
-        shap.plots.heatmap(shap_values_kernel,show=False)        
-        fig23=plt.gcf()
-        fig23.legend()
-        png_name='OCSVM_kernel_heatmap_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        model_orig = OneClassSVM(kernel='rbf',gamma='auto',nu=0.8,coef0=0.1,tol=1e-5)
-        model_shap = model_orig.fit(x_shap)
-        explainer = shap.Explainer(model_shap.predict,x_shap)
-        shap_values=explainer(x_shap)
-        print(shap_values)
-        print(shap_values[0])
-        plt.figure()
-        #plt.title('Clustering') 
-        shap.plots.waterfall(shap_values[0],show=False)        
-        fig18=plt.gcf()
-        fig18.legend()
-        png_name='OCSVM_waterfall_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        plt.figure()
-        shap.plots.force(explainer.expected_value,shap_values,matplotlib=True,show=False,plot_cmap='DrDb')
-        fig36=plt.gcf()
-        fig36.legend()
-        png_name='OCSVM_kernel_forceplot_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        plt.figure()
-        #plt.title('Clustering') 
-        shap.plots.heatmap(shap_values,show=False)        
-        fig20=plt.gcf()
-        fig20.legend()
-        png_name='OCSVM_heatmap_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        plt.figure()
-        shap.summary_plot(shap_values,x_shap,show=False)        
-        fig21=plt.gcf()
-        fig21.legend()
-        png_name='OCSVM_summaryplot_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        plt.figure()
-
-        #plt.title('Clustering') 
-
-        shap.plots.scatter(shap_values[:,'Enrichment_SUM'],color=shap_values[:,'Enrichment_COUNT'],show=False)       
-        fig19=plt.gcf()
-        fig19.legend()
-        png_name='OCSVM_scatter_Enrichmentsum_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        shap.plots.scatter(shap_values[:,'S1_SUM'],color=shap_values,show=False)        
-        fig31=plt.gcf()
-        fig31.legend()
-        png_name='OCSVM_scatter_s1sum_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        shap.plots.scatter(shap_values[:,'S1_STDEV'],color=shap_values,show=False)        
-        fig32=plt.gcf()
-        fig32.legend()
-        png_name='OCSVM_scatter_s1stdev_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        shap.plots.scatter(shap_values[:,'Enrichment_STDEV'],color=shap_values,show=False)        
-        fig33=plt.gcf()
-        fig33.legend()
-        png_name='OCSVM_scatter_Enrichmentstdev_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        shap.plots.scatter(shap_values[:,'Enrichment_COUNT'],color=shap_values,show=False)        
-        fig34=plt.gcf()
-        fig34.legend()
-        png_name='OCSVM_scatter_Enrichmentcount_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        shap.plots.scatter(shap_values[:,'S1_COUNT'],color=shap_values,show=False)        
-        fig35=plt.gcf()
-        fig35.legend()
-        png_name='OCSVM_scatter_s1count_'+str(currentTime)+'.png'
-        plt.savefig(graph_dir+png_name)
-        plt.close() 
-
-        y_predict[y_predict==1]=0
-        y_predict[y_predict==-1]=1
-
-        print('Score of model is: ',score_of_determination)
-        model_name = 'OneClassSVM'
-
-
-        return y_predict,model_name,score_of_determination 
-    
-
-    def agglomerativeClustering(df):
-        gc.collect()
-        x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
-        #x = np.array(df[['S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']])
-        df_result = df
-        #model = SVR(kernel='linear',gamma='scale',tol=0.001,epsilon=0.01)
-        #model = SVC(kernel='linear',gamma='scale',tol=0.0005,epsilon=0.0001)
-        #model = OneClassSVM(kernel='rbf',gamma='auto',tol=0.001)
-        model = AgglomerativeClustering(n_clusters=2,metric='euclidean',linkage='ward',compute_distances=True)
-        #x = np.reshape(x,(len(x),1))
-        model = model.fit(x)
-        print('distance is: ',model.distances_)
-        print(np.mean(model.distances_),max(model.distances_),model.n_clusters_)
-        y_predict = model.labels_
-        df_result['class'] = y_predict
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        df_result.to_csv(output_dir+'labels_agglomerative.csv',chunksize=1000)
-        model_name='AgglmerativeClustering'
-        #y_predict = model.predict(x)
-        #score_of_determination = model.score(x)
-        #score_of_determination = model.score(x,y)
-        result_name='output_'+model_name+'.csv'
-        df_result.to_csv(output_dir+result_name)
-        #print('Score of model is: ',score_of_determination)
-        return y_predict,model_name,x,df_result
-    def birch(df):
-        gc.collect()
-        #x = np.array(df[['Richness_SUM','Richness_COUNT','S1_SUM','S1_COUNT']])
-        x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
-        #x = np.array(df[['S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']]) 
-        df_result = df
-        #model = SVR(kernel='linear',gamma='scale',tol=0.001,epsilon=0.01)
-        #model = SVC(kernel='linear',gamma='scale',tol=0.0005,epsilon=0.0001)
-        #model = OneClassSVM(kernel='rbf',gamma='auto',tol=0.001)
-        model = Birch(threshold=0.7819798519436253,branching_factor=40,n_clusters=2)
-        #x = np.reshape(x,(len(x),1))
-        model = model.fit(x)
-        y_predict = model.predict(x)
-
-        df_result['class'] = y_predict
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-
-        model_name = 'birch'
-        #y_predict = model.predict(x)
-        #score_of_determination = model.score(x)
-        #score_of_determination = model.score(x,y)
-        result_name='output_'+model_name+'.csv'
-        df_result.to_csv(output_dir+result_name)
-        #print('Score of model is: ',score_of_determination)
-        return y_predict,model_name,x,df_result
-    def spectral(df):
-        gc.collect()
-        #x = np.array(df[['Richness_SUM','Richness_COUNT','Richness_STDEV','S1_SUM','S1_COUNT','S1_STDEV']])
-        x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
-        #df['S1_STDEV']=1/df['S1_STDEV']
-        #df['Richness_STDEV']=1/df['Richness_STDEV']
-        #x = np.array(df[['Richness_SUM','Richness_COUNT','S1_SUM','S1_COUNT']])        
-        df_result = df
-        model = SpectralClustering(n_clusters=2,assign_labels='kmeans',eigen_solver='arpack',random_state=0,affinity='nearest_neighbors')
-        #x = np.reshape(x,(len(x),1))
-        model = model.fit(x)
-        y_predict = model.labels_
-        df_result['class'] = y_predict
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==247) & (df_result ['CodeA']==169)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==191)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==245) & (df_result ['CodeA']==235)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==207) & (df_result ['CodeA']==134)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==152) & (df_result ['CodeA']==173)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==247) & (df_result ['CodeA']==174)])
-        print(df_result [(df_result ['CodeC']==192) & (df_result ['CodeB']==137) & (df_result ['CodeA']==233)])
-        print(df_result [(df_result ['CodeC']==1) & (df_result ['CodeB']==17) & (df_result ['CodeA']==71)])
-        model_name='spectral'
-
-        result_name='output_'+model_name+'.csv'
-        df_result.to_csv(output_dir+result_name)
-        return y_predict,model_name,x,df_result
-
-    def ipca(x,num):
-
-        clf_ipca = IncrementalPCA(n_components=num,batch_size=200)
-        clf_ipca  = clf_ipca.fit(x)
-        x_ipca = clf_ipca.transform(x)
-
-        return x_ipca
-    def linearRegression(df_erh):
-        scaler = StandardScaler()
-        x = df_erh['total_insr']
-
-        for col in df_erh.columns:
-            if 'pY1355' in col:
-                name = col
-                y = df_erh[col]
-            elif 'pY1361' in col:
-                name = col
-                y = df_erh[col]
-
-        x = np.reshape(x,(x.shape[0],1))
-        y = np.reshape(y,(y.shape[0],1)) 
-        x = scaler.fit_transform(x)
-        y = scaler.fit_transform(y)      
-        print(x,y)
-        model = LinearRegression()
-        model.fit(x,y)
-        y_predict = model.predict(x)
-        lr_score = model.score(x,y)
-        df_erh['total_insr_normalized']=x
-        df_erh[name+'_normalized']=y
-        df_erh['predict']=y_predict
-        df_erh['lr_score'] = lr_score
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==247) & (df_erh ['CodeA']==169)])
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==245) & (df_erh ['CodeA']==191)])
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==245) & (df_erh ['CodeA']==235)])
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==207) & (df_erh ['CodeA']==134)])
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==152) & (df_erh ['CodeA']==173)])
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==247) & (df_erh ['CodeA']==174)])
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==137) & (df_erh ['CodeA']==233)])
-        print(df_erh [(df_erh ['CodeC']==1) & (df_erh ['CodeB']==17) & (df_erh ['CodeA']==71)])
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==137) & (df_erh ['CodeA']==233)])
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==194) & (df_erh ['CodeA']==202)])
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==194) & (df_erh ['CodeA']==52)])
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==234) & (df_erh ['CodeA']==173)])        
-        print(df_erh [(df_erh ['CodeC']==192) & (df_erh ['CodeB']==245) & (df_erh ['CodeA']==156)])  
-        
-        return df_erh
-
-class utils():
-    def boundary(x,x_):
-        similarity=[]
-        for i in range (len(x)):
-            similarity_=[]
-            for j in range(len(x_)):
-                #print(i,j)
-                #dist_pair=cdist(np.reshape(x[i],(len(x[i]),1)),np.reshape(x_[j],(len(x[j]),1)),'euclidean')
-                dist=euclidean(x[i],x_[j])
-                similarity_point = 1/dist
-                similarity_.append(similarity_point)
-                #print(dist_)
-                #print(len(similarity_))
-            average_similarity=np.average(similarity_)
-            similarity.append(average_similarity)
-            #print(len(similarity))
-        #print(len(similarity))
-        return similarity
-    def distanceCP(x,c):
-        
-        print(len(x))
-        dist=[]
-        for i in range (len(x)):
-            try:
-            
-                dist_point=1/euclidean(x[i],c)
-                dist.append(dist_point)
-            except ZeroDivisionError:
-                dist.append(1)
-        return dist
 
 
 
@@ -1317,7 +365,7 @@ class evaluation():
         x_antiinsr_pY1361_ipca = np.array(df_similarity[['pY1361_ipca_x','pY1361_ipca_y','pY1355_ipca_z']])  
         x_antiinsr_pY1355_ipca_mixed = np.array(df_similarity[['pY1355_mixed_ipca_x','pY1355_mixed_ipca_y','pY1355_mixed_ipca_z']])   
         x_antiinsr_pY1361_ipca_mixed = np.array(df_similarity[['pY1361_mixed_ipca_x','pY1361_mixed_ipca_y','pY1361_mixed_ipca_z']]) 
-        x_ipca= ClusteringAnalysis.ipca(x,2 )
+        x_ipca= ipca.ipca(x,2 )
         df_ipca = pd.DataFrame( x_ipca )
         df_ipca['y'] = y_predict
         plt.scatter(df_ipca[df_ipca['y']==1][0],df_ipca[df_ipca['y']==1][1],label='cluster positive',color='red')
@@ -1833,20 +881,32 @@ class evaluation():
         df_score.to_csv(output_dir+result_name)
 
         return df_score
-
+def get_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data_dir',type=str,default='./chemistry_phase1/chemistry_phase1/data/phase_1/rs/total.csv', help = 'directory of the original data' )
+    parser.add_argument('--erh_dir',type=str,default='./chemistry_phase1/chemistry_phase1/data/phase_1/erh/', help = 'directory of erh files' )
+    parser.add_argument('--graph_dir',type=str,default='./chemistry_phase1/chemistry_phase1/graph/phase_1/level_0/', help = 'directory of graphs' )
+    parser.add_argument('--output_dir',type=str,default='./chemistry_phase1/chemistry_phase1/output/phase_1/level_0/', help = 'directory of outputs')
+    opt = parser.parse_args()
+    return opt
 
 if __name__=='__main__':
     
-    data_dir = 'C:/Users/sharo/Documents/chemistry/chemistry_phase1/chemistry_phase1/data/phase_1/rs/total.csv'
-    temp_dir = 'C:/Users/sharo/Documents/chemistry/chemistry_phase1/chemistry_phase1/parameters/phase_1/level_0/'
-    erh_dir = 'C:/Users/sharo/Documents/chemistry/chemistry_phase1/chemistry_phase1/data/phase_1/erh/'
-    graph_dir='C:/Users/sharo/Documents/chemistry/chemistry_phase1/chemistry_phase1/graph/phase_1/level_0/'
-    output_dir='C:/Users/sharo/Documents/chemistry/chemistry_phase1/chemistry_phase1/output/phase_1/level_0/'
+    #data_dir = 'C:/Users/sharo/Documents/chemistry/chemistry_phase1/chemistry_phase1/data/phase_1/rs/total.csv'
+    #erh_dir = 'C:/Users/sharo/Documents/chemistry/chemistry_phase1/chemistry_phase1/data/phase_1/erh/'
+    #graph_dir='C:/Users/sharo/Documents/chemistry/chemistry_phase1/chemistry_phase1/graph/phase_1/level_0/'
+    #output_dir='C:/Users/sharo/Documents/chemistry/chemistry_phase1/chemistry_phase1/output/phase_1/level_0/'
     #gc.collect()
+    
     gc.collect()
+    opt = get_parser()
+    data_dir = opt.data_dir
+    erh_dir = opt.erh_dir
+    graph_dir = opt.graph_dir
+    output_dir = opt.output_dir
     df_orig = dataLoading(data_dir)
     #x,x_dual = indExtract(df)
-
+    df_orig = preprocess.descriptors(df_orig)
     df_normalized = preprocess.dataNormalize(df_orig)
     df = preprocess.dataPreprocess(df_normalized)
 
@@ -1867,8 +927,8 @@ if __name__=='__main__':
     #x_bind_2 = np.array(df_filtered[['S1_STDEV','Richness_STDEV']])
     #df_filtered = preprocess.outlierFiltering(x_bind_2,df_filtered,4)
 
-    df_erh_insr = similarityAnalysis.erhAnalysis(erh_dir,df_filtered)
-    y_predict,model_name,x,df_result =similarityAnalysis.classification(df_filtered)
+    df_erh_insr = erhAnalysis(erh_dir,df_filtered)
+    y_predict,model_name,x,df_result =classification(df_filtered)
     df_erh_insr_ipca = similarityAnalysis.ipcaAnalysis(df_erh_insr,df_result)
     
     df_similarity = similarityAnalysis.similarity(df_erh_insr_ipca,model_name )
