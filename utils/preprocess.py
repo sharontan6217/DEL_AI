@@ -27,7 +27,7 @@ class preprocess():
                 print(df_orig [(df_orig ['CodeC']==codeC) & (df_orig ['CodeB']==codeB) & (df_orig ['CodeA']==codeA)])
 
         return df_orig
-    def dataNormalize(df,samples):
+    def dataStandardize(df,samples):
 
         print(df.columns)
         cols = ['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']

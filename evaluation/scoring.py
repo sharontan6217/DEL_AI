@@ -13,7 +13,7 @@ import gc
 
 def score(df_similarity,opt,samples):
 	gc.collect()
-	model_names = ['kmeans','AgglmerativeClustering']
+	model_names = ['kmeans','agglmerativeclustering']
 
 	print(df_similarity)
 
@@ -59,7 +59,7 @@ def score(df_similarity,opt,samples):
 	df_similarity_1['Similarity_point_RANK_pY1361_mixed']=df_similarity_1['Similarity_point_pY1361_mixed'].rank(ascending=True).astype(float)
 	df_similarity_1['S1_Richness_efficiency_RANK']=df_similarity_1['S1_Richness_efficiency'].rank(ascending=False).astype(float)
 	df_similarity_1['S1_Richness_balance_RANK']=df_similarity_1['S1_Richness_balance'].rank(ascending=False).astype(float)
-	if opt.model_name in model_names:
+	if opt.model_name.lower() in model_names:
 		df_similarity_1['Similarity_RANK']=df_similarity_1['Similarity'].rank(ascending=False).astype(float)
 	else:
 		df_similarity_1['Similarity_RANK']=df_similarity_1['Similarity'].rank(ascending=True).astype(float)
@@ -122,7 +122,7 @@ def score(df_similarity,opt,samples):
 	df_similarity_0['Similarity_antiinsr_RANK_pY1361']=df_similarity_0['Similarity_antiinsr_1361'].rank(ascending=True).astype(float)
 	df_similarity_0['S1_Richness_efficiency_RANK']=df_similarity_0['S1_Richness_efficiency'].rank(ascending=False).astype(float)
 	df_similarity_0['S1_Richness_balance_RANK']=df_similarity_0['S1_Richness_balance'].rank(ascending=False).astype(float)
-	if opt.model_name in model_names:
+	if opt.model_name.lower() in model_names:
 		df_similarity_0['Similarity_RANK']=df_similarity_0['Similarity'].rank(ascending=False).astype(float)
 	else:
 		df_similarity_0['Similarity_RANK']=df_similarity_0['Similarity'].rank(ascending=True).astype(float)

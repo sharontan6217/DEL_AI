@@ -27,10 +27,10 @@ torch.cuda.empty_cache()
 
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir',type=str,default='./chemistry_phase1/chemistry_phase1/data/phase_1/rs/total.csv', help = 'directory of the original data' )
-    parser.add_argument('--erh_dir',type=str,default='./chemistry_phase1/chemistry_phase1/data/phase_1/erh/', help = 'directory of erh files' )
-    parser.add_argument('--graph_dir',type=str,default='./chemistry_phase1/chemistry_phase1/graph/phase_1/level_0/', help = 'directory of graphs' )
-    parser.add_argument('--output_dir',type=str,default='./chemistry_phase1/chemistry_phase1/output/phase_1/level_0/', help = 'directory of outputs')
+    parser.add_argument('--data_dir',type=str,default='./data/phase_1/rs/total.csv', help = 'directory of the original data' )
+    parser.add_argument('--erh_dir',type=str,default='./data/phase_1/erh/', help = 'directory of erh files' )
+    parser.add_argument('--graph_dir',type=str,default='./graph/phase_1/level_0/', help = 'directory of graphs' )
+    parser.add_argument('--output_dir',type=str,default='./output/phase_1/level_0/', help = 'directory of outputs')
     parser.add_argument('--level',type=str,default='level1', help = 'level is either "level0" or "level1". Level0 is for filtering, and level1 is for ranking.')
     parser.add_argument('--model_name',type=str,default='OneClassSVM', help = 'clustering model is one of the list ["OneClassSVM","KMeans","Spectral","BIRCH","AgglomerativeClustering","OpticsClustering"].')
     parser.add_argument('--amplify_deviation_filtering',type=str,default='No', help = 'We add a few amplifications in preporcessing as an option. Input "Yes" if the dataset is large.')
@@ -48,14 +48,18 @@ if __name__=='__main__':
     output_dir = opt.output_dir
     model_name=opt.model_name
     samples=pd.read_csv('samples_phase1.csv')
+    #----------------------------Load data-------------------------------------------------------------------------
     df_orig = dataLoading_filter(data_dir)
-    df_orig = preprocess.descriptors(df_orig,samples)
-    df_normalized = preprocess.dataNormalize(df_orig,samples)
-    if opt.level=='level0':
-        df = preprocess.dataPreprocess_filter(df_normalized,samples)
-    else:
-        df = preprocess.dataPreprocess_rank(df_normalized,samples)
 
+    #----------------------------Preprocess------------------------------------------------------------------------
+    df_orig = preprocess.descriptors(df_orig,samples)                          #calculate statistic descriptors
+    df_normalized = preprocess.dataStandardize(df_orig,samples)                #scale data with standard scaler 
+    #----------------------------Binding block-based filterings----------------------------------------------------
+    if opt.level=='level0':
+        df = preprocess.dataPreprocess_filter(df_normalized,samples)           #binding blocks filtering for level 0 to filter the possible active candidates
+    else:
+        df = preprocess.dataPreprocess_rank(df_normalized,samples)             #binding blocks filtering for level 1 to filter the most proactive candidates
+    #----------------------------Auto-filtering of outliers with self-adaptive DBSCAN------------------------------
     x_efficiency = np.array(df['S1_Richness_efficiency'])
     x_efficiency = np.reshape(x_efficiency,(len(x_efficiency),1))  
     df_filtered = preprocess.outlierFiltering(x_efficiency,df,1)
@@ -70,15 +74,18 @@ if __name__=='__main__':
     df_filtered = preprocess.outlierFiltering(x_bind_1,df_filtered,3,samples)
     #x_bind_2 = np.array(df_filtered[['S1_STDEV','Richness_STDEV']])
     #df_filtered = preprocess.outlierFiltering(x_bind_2,df_filtered,4)
-
+    #----------------------------Add INSR comparison indicator and conditional summation---------------------------
     df_erh_insr = erhAnalysis(erh_dir,df_filtered)
+    #----------------------------OCSVM for classification----------------------------------------------------------
     y_predict,x,df_result =classification(df_filtered,opt,samples,currentTime)
+    #----------------------------IPCA for Visulization and Hit Candidate Clustering--------------------------------
     df_erh_insr_ipca = similarityAnalysis.ipcaAnalysis(df_erh_insr,df_result)
-    
-    df_similarity = similarityAnalysis.similarity(df_erh_insr_ipca,model_name )
+    #----------------------------Similarity and Ranking------------------------------------------------------------
+    df_similarity = similarityAnalysis.similarity(df_erh_insr_ipca,opt)
     #classes=set(y_predict)
     df_score = scoring.score(df_similarity,opt,samples )
-    fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_10,fig_11= visualize.Visualize(x,df_similarity,y_predict,df_score,samples,graph_dir)
+    #----------------------------Generate graphs-------------------------------------------------------------------
+    fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_10,fig_11= visualize.Visualize(x,df_similarity,y_predict,df_score,samples,opt)
 
     
 

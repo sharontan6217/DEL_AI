@@ -11,7 +11,9 @@ import argparse
 
 
 
-def Visualize(x,df_similarity,y_predict,df_score,samples,graph_dir):
+def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
+	graph_dir = opt.graph_dir
+	model_name = opt.model_name
 	#scaler=MinMaxScaler()
 	#scaler.fit(x)
 	#x=scaler.transform(x)
