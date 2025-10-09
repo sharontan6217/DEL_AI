@@ -4,7 +4,7 @@ import utils
 from utils import utils
 import gc
 
-def similarity(df_erh_insr_ipca,model_name):
+def similarity(df_erh_insr_ipca,opt):
 	gc.collect()
 	model_names = ['kmeans','AgglmerativeClustering']
 	#print(df_result.columns)
@@ -140,14 +140,14 @@ def similarity(df_erh_insr_ipca,model_name):
 	x_0=np.array(x_0)
 	x_1= df_1[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']]
 	x_1=np.array(x_1)
-	if model_name=='OneClassSVM':
+	if opt.model_name=='OneClassSVM':
 		df_0['Similarity']=df_0['Score_OSVM']
 		df_1['Similarity']=df_1['Score_OSVM']        
 	else:
 		df_0['Similarity']=utils.boundary(x_0,x_1)
 		df_1['Similarity']=utils.boundary(x_1,x_0)
 	df_similarity=pd.concat((df_0,df_1),axis=0)
-	print(model_name, df_0['Similarity'])
+	print(opt.model_name, df_0['Similarity'])
 
 	return df_similarity
 

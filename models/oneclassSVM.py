@@ -7,9 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import gc
 import datetime
-def oneclassSVM(x,opt,currentTime):
+def oneclassSVM(x,opt,currentTime,graph_dir):
 	global model
-	graph_dir = opt.graph_dir
 	model = OneClassSVM(kernel='rbf',gamma='auto',nu=0.8,coef0=0.1,tol=1e-5)
 	#x = np.reshape(x,(len(x),1))
 	model = model.fit(x)
@@ -202,7 +201,6 @@ def oneclassSVM(x,opt,currentTime):
 	y_predict[y_predict==-1]=1
 
 	print('Score of model is: ',score_of_determination)
-	model_name = 'OneClassSVM'
 
 
-	return y_predict,model_name,score_of_determination 
+	return y_predict,score_of_determination 

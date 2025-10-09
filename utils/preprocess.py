@@ -5,11 +5,12 @@ import numpy as np
 import models
 from models import DBSCAN
 from scipy.spatial.distance import sqeuclidean,jaccard,canberra,cdist,euclidean
-
+from statistics import median,median_low,median_high,geometric_mean,harmonic_mean,quantiles
 import gc
+
 scaler =StandardScaler()
 class preprocess():
-    def descriptors(df_orig):
+    def descriptors(df_orig,samples):
 
         df_orig=df_orig[(df_orig['S1_SUM']>0)&(df_orig['Richness_SUM']>0)&(df_orig['S1_COUNT']>0)&(df_orig['Richness_COUNT']>0)&(df_orig['S1_STDEV']>0)&(df_orig['Richness_STDEV']>0)]
         df_orig['S1_ind']  = df_orig['S1_SUM']/df_orig['S1_STDEV']
@@ -17,22 +18,16 @@ class preprocess():
         df_orig['S1_Richness_efficiency']= df_orig['Richness_SUM']/df_orig['S1_SUM']
         df_orig['S1_Richness_balance']=abs(df_orig['Richness_ind']/df_orig['S1_ind'].apply(np.log))
         df_orig = df_orig[['CodeA','CodeB','CodeC','Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT','S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']]
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==247) & (df_orig ['CodeA']==169)])
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==245) & (df_orig ['CodeA']==191)])
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==245) & (df_orig ['CodeA']==235)])
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==207) & (df_orig ['CodeA']==134)])
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==152) & (df_orig ['CodeA']==173)])
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==247) & (df_orig ['CodeA']==174)])
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==137) & (df_orig ['CodeA']==233)])
-        print(df_orig [(df_orig ['CodeC']==1) & (df_orig ['CodeB']==17) & (df_orig ['CodeA']==71)])
-        print(df_orig [(df_orig ['CodeC']==260) & (df_orig ['CodeB']==26) & (df_orig ['CodeA']==22)])
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==194) & (df_orig ['CodeA']==202)])
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==194) & (df_orig ['CodeA']==52)])
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==234) & (df_orig ['CodeA']==173)])
-        print(df_orig [(df_orig ['CodeC']==192) & (df_orig ['CodeB']==245) & (df_orig ['CodeA']==156)])
+        
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df_orig [(df_orig ['CodeC']==codeC) & (df_orig ['CodeB']==codeB) & (df_orig ['CodeA']==codeA)])
 
         return df_orig
-    def dataNormalize(df):
+    def dataNormalize(df,samples):
 
         print(df.columns)
         cols = ['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']
@@ -50,58 +45,36 @@ class preprocess():
 
 
 
-        print(df_normalized [(df_normalized['CodeC']==192) & (df_normalized ['CodeB']==247) & (df_normalized ['CodeA']==169)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==245) & (df_normalized ['CodeA']==191)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==245) & (df_normalized ['CodeA']==235)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==207) & (df_normalized ['CodeA']==134)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==152) & (df_normalized ['CodeA']==173)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==247) & (df_normalized ['CodeA']==174)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==137) & (df_normalized ['CodeA']==233)])
-        print(df_normalized [(df_normalized ['CodeC']==1) & (df_normalized ['CodeB']==17) & (df_normalized ['CodeA']==71)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==194) & (df_normalized ['CodeA']==202)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==194) & (df_normalized ['CodeA']==52)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==234) & (df_normalized ['CodeA']==173)])
-        print(df_normalized [(df_normalized ['CodeC']==192) & (df_normalized ['CodeB']==245) & (df_normalized ['CodeA']==156)])
-
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
 
         return df_normalized
-    def dataPreprocess(df):
+    def dataPreprocess_filter(df,samples,opt):
         df=df[(df['S1_SUM']>0)&(df['Richness_SUM']>0)&(df['S1_COUNT']>0)&(df['Richness_COUNT']>0)]
 
-
-
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
         scope_count = int(len(df)*0.1)
         df=df.nlargest(scope_count , ['S1_COUNT','Richness_COUNT'])
 
         print('-------------------------s1 and Richness count----------------------')
         print(len(df))
 
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
 
 
@@ -113,19 +86,12 @@ class preprocess():
         print('-------------------------s1 and Richness balance----------------------')
         print(len(df))
 
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
         #print(scope_efficiency)
 
 
@@ -135,24 +101,18 @@ class preprocess():
 
 
         scope_balance_ind = int(len(df)*0.9)
-
+        if opt.amplify_deviation_filtering.lower()=='yes':
+            scope_balance_ind = int(len(df)*0.8)
         df=df.nlargest(scope_balance_ind , 'S1_Richness_balance')
         print('-------------------------s1 and Richness balance----------------------')
         print(len(df))
 
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
         scope_total_Richness = int(len(df)*0.4)
 
         #print(scope_efficiency)
@@ -160,43 +120,116 @@ class preprocess():
         print('-------------------------total Richness----------------------')
         print(len(df))
 
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
     
 
         df=df[(df['S1_ind']>1)&(df['Richness_ind']>1)]
 
         print(len(df))
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
+
+
+
+        return df
+    def dataPreprocess_rank(df,samples,opt):
+
+        
+        
+    
+        scope_balance = int(len(df)*0.8)
+
+        df=df.nlargest(scope_balance , ['S1_ind','Richness_ind'])
+        print('-------------------------s1 and Richness balance----------------------')
+        print(len(df))
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
+
+        scope_balance_ind = int(len(df)*0.8)
+
+        df=df.nlargest(scope_balance_ind , 'S1_Richness_balance')
+        print('-------------------------s1 and Richness balance----------------------')
+        print(len(df))
+
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
+
+        scope_count = int(len(df)*0.5)
+        
+        df=df.nlargest(scope_count , ['S1_COUNT','Richness_COUNT'])
+
+        print('-------------------------s1 and Richness count----------------------')
+        print(len(df))
+
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
+        #print(scope_efficiency)
+        
+        
+        
+        scope_total_Richness = int(len(df)*0.5)
+
+        #print(scope_efficiency)
+        df=df.nlargest(scope_total_Richness , ['Richness_SUM','S1_SUM'])
+        print('-------------------------total Richness----------------------')
+        print(len(df))
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
+
+
+        quasi_richness_stdev = [q for q in quantiles((df['Richness_STDEV']),n=20)][-1]
+        quasi_s1_stdev = [q for q in quantiles((df['S1_STDEV']),n=20)][-1]
+        #print(quasi_richness_stdev,quasi_s1_stdev  )
+        df=df[(df['Richness_STDEV']<quasi_richness_stdev )|(df['S1_STDEV']<quasi_s1_stdev )]
+        
+        if opt.amplify_deviation_filtering.lower()=='yes':
+            quasi_richness_stdev = [q for q in quantiles((df['Richness_STDEV']),n=20)][-1]
+            quasi_s1_stdev = [q for q in quantiles((df['S1_STDEV']),n=20)][-1]
+            #print(quasi_richness_stdev )
+            df=df[(df['Richness_STDEV']<quasi_richness_stdev )|(df['S1_STDEV']<quasi_s1_stdev )]
+
+
+        df=df[(df['S1_ind']>1)&(df['Richness_ind']>1)]
+        #df=df[(df['performance_ind_0_total']>=3)|(df['performance_ind_1_total']>=3)]
+        #df=df[(df['S1_Richness_efficiency']>0.01)&(df['S1_Richness_balance']>0.01)]
+        print(len(df))
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
 
 
         return df
 
-    def outlierFiltering(x,df,round):        
+    def outlierFiltering(x,df,round,samples):        
         gc.collect()
         
         n = round
@@ -240,19 +273,12 @@ class preprocess():
 
         y_predict = model_classification.fit_predict(x)
         df['class'] = y_predict
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==169)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==191)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==235)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==207) & (df ['CodeA']==134)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==152) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==247) & (df ['CodeA']==174)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==137) & (df ['CodeA']==233)])
-        print(df [(df ['CodeC']==1) & (df ['CodeB']==17) & (df ['CodeA']==71)])
-        print(df [(df ['CodeC']==260) & (df ['CodeB']==26) & (df ['CodeA']==22)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==202)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==194) & (df ['CodeA']==52)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==234) & (df ['CodeA']==173)])
-        print(df [(df ['CodeC']==192) & (df ['CodeB']==245) & (df ['CodeA']==156)])
+        if len(samples)>0:
+            for i in range(len(samples)):
+                codeA=samples[i][0]
+                codeB=samples[i][1]
+                codeC=samples[i][2]
+                print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
         df_filtered=df[df['class']!=-1]
         print(df[df['class']==-1])
         print(len(df_filtered))
