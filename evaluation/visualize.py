@@ -4,7 +4,7 @@ import datetime
 from scipy import stats as st
 import matplotlib.pyplot as plt
 from models import ipca
-import argparse
+
 
 
 

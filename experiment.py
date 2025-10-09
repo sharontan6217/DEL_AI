@@ -1,5 +1,4 @@
-from sklearn.cluster import DBSCAN,KMeans,AgglomerativeClustering,compute_optics_graph,cluster_optics_xi,SpectralClustering,Birch,OPTICS
-from sklearn.svm import SVC,NuSVC,OneClassSVM,SVR,NuSVR
+
 import pandas as pd
 import numpy as np
 import datetime
