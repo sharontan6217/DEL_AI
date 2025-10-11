@@ -7,11 +7,7 @@ import gc
 def similarity(df_erh_insr_ipca,opt):
 	gc.collect()
 	model_names = ['kmeans','AgglmerativeClustering']
-	#print(df_result.columns)
 
-	#print(df_erh_insr_ipca.columns)
-	#df_ = df_erh_insr_ipca.drop('class',axis=1)
-	#df= df_result.merge(df_erh_insr_ipca,how='left',on=['CodeA','CodeB','CodeC'])
 	df = df_erh_insr_ipca
 	print(df.columns)
 
@@ -42,8 +38,7 @@ def similarity(df_erh_insr_ipca,opt):
 	else:
 		ct_ind_pY1361 = 0
 	x_min = min(df['total_insr'])
-	#df['Similarity_point_pY1355'] = utils.distanceCP(erh_array_1355,c_1355)
-	#df['Similarity_point_pY1361'] = utils.distanceCP(erh_array_1361,c_1361)
+
 	if ct_ind_pY1355 == 1:
 		x_min_1355_ipca = x_argmin_1355 
 		df['Similarity_centralLine_pY1355'] = ( df['total_insr_1355_ipca']-x_min_1355_ipca)

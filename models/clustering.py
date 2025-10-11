@@ -29,15 +29,12 @@ import gc
 def opticsClustering(df,opt,samples):
 	gc.collect()
 	output_dir = opt.output_dir
-	#x = np.array(df[['Richness_SUM','Richness_COUNT','S1_SUM','S1_COUNT']])
+
 	x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
 	df_result = df
 	ordering,core_distances,reachability,predecessor=compute_optics_graph(x,min_samples=2,max_eps=np.inf,metric='euclidean',p=2,metric_params=None,algorithm='auto',leaf_size=2,n_jobs=None)
 	labels,clusters=cluster_optics_xi(reachability=reachability,predecessor=predecessor,ordering=ordering,min_samples=2,xi=0.00001)
-	#model = OPTICS(metric='euclidean')
-	#x = np.reshape(x,(len(x),1))
-	#model = model.fit(x)
-	#y_predict = model.labels_
+
 	y_predict = labels
 	df_result['class'] = y_predict
 	if len(samples)>0:
@@ -47,23 +44,18 @@ def opticsClustering(df,opt,samples):
 			codeC=samples[i][2]
 			print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 	df_result.to_csv(output_dir+'labels_opticsClustering.csv',chunksize=1000)
-	#score_of_determination = model.score(x,y)
 
-	#print('Score of model is: ',score_of_determination)
-	
 	result_name='output_'+opt.model_name+'.csv'
 	df_result.to_csv(output_dir+result_name)
-	return y_predict,x,df_result
+	return y_predict
 def kmeans(df,opt,samples):
 	gc.collect()
 	output_dir = opt.output_dir
-	#x = np.array(df[['Richness_SUM','Richness_COUNT','Richness_STDEV']])
-	#x = np.array(df[['S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']])
-	#x = np.array(df[['Richness_SUM','Richness_COUNT','S1_SUM','S1_COUNT']])
+
 	x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
 	df_result = df
 	model = KMeans(n_clusters=2,init='k-means++',algorithm='lloyd',tol=5e-4)
-	#x = np.reshape(x,(len(x),1))
+
 	model = model.fit(x)
 	y_predict = model.predict(x)
 	df_result['class'] = y_predict
@@ -74,14 +66,14 @@ def kmeans(df,opt,samples):
 			codeC=samples[i][2]
 			print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 	df_result.to_csv(output_dir+'labels_kmeans.csv',chunksize=1000)
-	#y_predict = model.predict(x)
+
 	score_of_determination = model.score(x)
 
 	print('Score of model is: ',score_of_determination)
 
 	result_name='output_'+opt.model_name+'.csv'
 	df_result.to_csv(output_dir+result_name)
-	return y_predict,x,df_result
+	return y_predict
 
 
 
@@ -90,13 +82,11 @@ def agglomerativeClustering(df,opt,samples):
 	gc.collect()
 	output_dir = opt.output_dir
 	x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
-	#x = np.array(df[['S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']])
+
 	df_result = df
-	#model = SVR(kernel='linear',gamma='scale',tol=0.001,epsilon=0.01)
-	#model = SVC(kernel='linear',gamma='scale',tol=0.0005,epsilon=0.0001)
-	#model = OneClassSVM(kernel='rbf',gamma='auto',tol=0.001)
+
 	model = AgglomerativeClustering(n_clusters=2,metric='euclidean',linkage='ward',compute_distances=True)
-	#x = np.reshape(x,(len(x),1))
+
 	model = model.fit(x)
 	print('distance is: ',model.distances_)
 	print(np.mean(model.distances_),max(model.distances_),model.n_clusters_)
@@ -109,25 +99,21 @@ def agglomerativeClustering(df,opt,samples):
 			codeC=samples[i][2]
 			print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 	df_result.to_csv(output_dir+'labels_agglomerative.csv',chunksize=1000)
-	#y_predict = model.predict(x)
-	#score_of_determination = model.score(x)
-	#score_of_determination = model.score(x,y)
+
 	result_name='output_'+opt.model_name+'.csv'
 	df_result.to_csv(output_dir+result_name)
-	#print('Score of model is: ',score_of_determination)
-	return y_predict,x,df_result
+
+	return y_predict
 def birch(df,opt,samples):
 	gc.collect()
 	output_dir = opt.output_dir
-	#x = np.array(df[['Richness_SUM','Richness_COUNT','S1_SUM','S1_COUNT']])
+
 	x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
-	#x = np.array(df[['S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']]) 
+
 	df_result = df
-	#model = SVR(kernel='linear',gamma='scale',tol=0.001,epsilon=0.01)
-	#model = SVC(kernel='linear',gamma='scale',tol=0.0005,epsilon=0.0001)
-	#model = OneClassSVM(kernel='rbf',gamma='auto',tol=0.001)
+
 	model = Birch(threshold=0.7819798519436253,branching_factor=40,n_clusters=2)
-	#x = np.reshape(x,(len(x),1))
+
 	model = model.fit(x)
 	y_predict = model.predict(x)
 
@@ -139,25 +125,19 @@ def birch(df,opt,samples):
 			codeC=samples[i][2]
 			print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
-
-	#y_predict = model.predict(x)
-	#score_of_determination = model.score(x)
-	#score_of_determination = model.score(x,y)
 	result_name='output_'+opt.model_name+'.csv'
 	df_result.to_csv(output_dir+result_name)
-	#print('Score of model is: ',score_of_determination)
-	return y_predict,x,df_result
+
+	return y_predict
 def spectral(df,opt,samples):
 	gc.collect()
 	output_dir = opt.output_dir
-	#x = np.array(df[['Richness_SUM','Richness_COUNT','Richness_STDEV','S1_SUM','S1_COUNT','S1_STDEV']])
+
 	x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
-	#df['S1_STDEV']=1/df['S1_STDEV']
-	#df['Richness_STDEV']=1/df['Richness_STDEV']
-	#x = np.array(df[['Richness_SUM','Richness_COUNT','S1_SUM','S1_COUNT']])        
+      
 	df_result = df
 	model = SpectralClustering(n_clusters=2,assign_labels='kmeans',eigen_solver='arpack',random_state=0,affinity='nearest_neighbors')
-	#x = np.reshape(x,(len(x),1))
+
 	model = model.fit(x)
 	y_predict = model.labels_
 	df_result['class'] = y_predict
@@ -171,6 +151,6 @@ def spectral(df,opt,samples):
 
 	result_name='output_'+opt.model_name+'.csv'
 	df_result.to_csv(output_dir+result_name)
-	return y_predict,x,df_result
+	return y_predict
 
 

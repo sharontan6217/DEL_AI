@@ -4,6 +4,7 @@ from sklearn.svm import SVC,NuSVC,OneClassSVM,SVR,NuSVR
 import utils
 from utils import utils
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import gc
 import datetime
@@ -27,25 +28,22 @@ def oneclassSVM(x,opt,currentTime,graph_dir):
 
 
 	print(model.get_params())
-	#model = OneClassSVM(kernel='rbf',gamma='auto',nu=0.8,coef0=0.1,tol=1e-5)
-	#x = np.reshape(x,(len(x),1))
+
 	model = model.fit(x)
 	y_predict = model.predict(x)
 	score_of_determination = model.score_samples(x)
-	#x_shap_orig = pd.DataFrame(x,columns=['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT'])
+
 	x_shap_orig = pd.DataFrame(x,columns=['Enrichment_SUM','Enrichment_STDEV','Enrichment_COUNT','S1_SUM','S1_STDEV','S1_COUNT'])
 	x_shap = shap.sample(x_shap_orig,1000)
 	x_shap.to_csv('oneClass_x.csv')
 	
 	explainer_kernel = shap.KernelExplainer(utils.logProbability,x_shap)
-	#explainer_kernel = shap.KernelExplainer(model.score_samples,x_shap)
+
 	shap_values_kernel=explainer_kernel(x_shap)
 	expected_value_kernel = explainer_kernel.expected_value
-	print(expected_value_kernel)
-	print(shap_values_kernel)
-	print(shap_values_kernel[0])
+
 	plt.figure()
-	#plt.title('Clustering') 
+
 	shap.plots.waterfall(shap_values_kernel[0],show=False)        
 	fig22=plt.gcf()
 	fig22.legend()
@@ -66,7 +64,7 @@ def oneclassSVM(x,opt,currentTime,graph_dir):
 	
 	plt.figure()
 
-	#plt.title('Clustering') 
+
 
 	shap.plots.scatter(shap_values_kernel[:,'Enrichment_SUM'],color=shap_values_kernel[:,'Enrichment_COUNT'],show=False)        
 	fig25=plt.gcf()
@@ -113,15 +111,13 @@ def oneclassSVM(x,opt,currentTime,graph_dir):
 
 	plt.figure()
 	png_name='OCSVM_kernel_forceplot_'+str(currentTime)+'.png'
-	#shap.plots.force(shap_values_kernel[0],matplotlib=True,show=False,plot_cmap='DrDb')   
-	
-	#shap.force_plot(np.round(expected_value_kernel,4),np.round(shap_values_kernel.values[0,:],4),np.round(x_shap.iloc[0,:],4),matplotlib=True,show=False,plot_cmap='DrDb').savefig(graph_dir+png_name)   
+
 	shap.force_plot(np.round(expected_value_kernel,4),np.round(shap_values_kernel.values[0,:],4),np.round(x_shap.iloc[0,:],4),matplotlib=True,show=False,plot_cmap='DrDb').savefig(graph_dir+png_name)  
 	#plt.show()
 	plt.close()
 	
 	plt.figure()
-	#plt.title('Clustering') 
+
 	shap.plots.heatmap(shap_values_kernel,show=False)        
 	fig23=plt.gcf()
 	fig23.legend()
@@ -153,7 +149,7 @@ def oneclassSVM(x,opt,currentTime,graph_dir):
 	plt.close() 
 
 	plt.figure()
-	#plt.title('Clustering') 
+
 	shap.plots.heatmap(shap_values,show=False)        
 	fig20=plt.gcf()
 	fig20.legend()
@@ -171,7 +167,7 @@ def oneclassSVM(x,opt,currentTime,graph_dir):
 
 	plt.figure()
 
-	#plt.title('Clustering') 
+
 
 	shap.plots.scatter(shap_values[:,'Enrichment_SUM'],color=shap_values[:,'Enrichment_COUNT'],show=False)       
 	fig19=plt.gcf()

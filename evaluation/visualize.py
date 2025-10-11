@@ -14,10 +14,7 @@ from models import ipca
 def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	graph_dir = opt.graph_dir
 	model_name = opt.model_name
-	#scaler=MinMaxScaler()
-	#scaler.fit(x)
-	#x=scaler.transform(x)
-	#x = np.array(df_result[['S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']])
+
 	currentTime=str(datetime.datetime.now()).replace(':','_')
 	x_ipca_1355 = np.array(df_similarity[['total_insr_pY1355_mixed_ipca','total_pY1355_mixed_ipca']])
 	x_ipca_1361 = np.array(df_similarity[['total_insr_pY1361_mixed_ipca','total_pY1361_mixed_ipca']])
@@ -32,7 +29,7 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	df_ipca['y'] = y_predict
 	plt.scatter(df_ipca[df_ipca['y']==1][0],df_ipca[df_ipca['y']==1][1],label='cluster positive',color='red')
 	plt.scatter(df_ipca[df_ipca['y']==0][0],df_ipca[df_ipca['y']==0][1],label='cluster negative',color='blue')
-	#plt.title('OCSVM Clustering')
+
 	plt.xlabel('PCA1')
 	plt.ylabel('PCA2')
 	plt.legend(loc='best')
@@ -71,13 +68,8 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	y_sample_1355 = df_sample['total_pY1355_mixed_ipca']
 	print(df_sample)
 	plt.scatter(x_ipca_1355[:,0],x_ipca_1355[:,1], alpha=0.3)
-	'''
-	for i, (comp,var) in enumerate(zip(ipca_1355.components_,ipca_1355.explained_variance_)):
-		comp = comp * var
-		print(comp)
-		plt.plot([0,comp[0]],[0,comp[1]],label=f'Component{i}',linewidth=5,color=f'C{i+2}')
-	'''
-	#plt.title('Clustering')
+
+
 	plt.plot(x_sample_1355,y_sample_1355,'r8')
 	plt.xlabel('PCA 1')
 	plt.ylabel('PCA 2')
@@ -91,16 +83,11 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	plt.savefig(graph_dir+png_name_roc)
 	plt.close()  
 
-	#x_sample = df_sample['total_insr']
+
 	x_sample_1361 = df_sample['total_insr_pY1361_mixed_ipca']
 	y_sample_1361 = df_sample['total_pY1361_mixed_ipca']
 	plt.scatter(x_ipca_1361[:,0],x_ipca_1361[:,1], alpha=0.3)
-	'''
-	for i, (comp,var) in enumerate(zip(ipca_1361.components_,ipca_1361.explained_variance_)):
-		comp = comp * var
-		plt.plot([0,comp[0]],[0,comp[1]],label=f'Component{i}',linewidth=5,color=f'C{i+2}')
-	'''
-	#plt.title('Clustering')
+
 	plt.plot(x_sample_1361,y_sample_1361,'r8')
 	plt.xlabel('PCA 1')
 	plt.ylabel('PCA 2')
@@ -140,7 +127,7 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	points = [(x,x) for x in range(0,2000)]
 	x_line,y_line = zip(*points)
 	plt.plot(x_line,y_line)
-	#plt.title('Clustering')
+
 	plt.xlim(0,2000)
 	plt.ylim(0,2000)
 	plt.xlabel('Enrichment on Anti-INSR')
@@ -163,13 +150,8 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	y_sample_1355 = df_sample['total_pY1355_ipca']
 	print(df_sample)
 	plt.scatter(x_ipca_1355[:,0],x_ipca_1355[:,1], alpha=0.3)
-	'''
-	for i, (comp,var) in enumerate(zip(ipca_1355.components_,ipca_1355.explained_variance_)):
-		comp = comp * var
-		print(comp)
-		plt.plot([0,comp[0]],[0,comp[1]],label=f'Component{i}',linewidth=5,color=f'C{i+2}')
-	'''
-	#plt.title('Clustering')
+
+
 	plt.plot(x_sample_1355,y_sample_1355,'r8')
 	plt.xlabel('PCA 1')
 	plt.ylabel('PCA 2')
@@ -181,16 +163,11 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	plt.savefig(graph_dir+png_name_roc)
 	plt.close()  
 
-	#x_sample = df_sample['total_insr']
+
 	x_sample_1361 = df_sample['total_insr_1361_ipca']
 	y_sample_1361 = df_sample['total_pY1361_ipca']
 	plt.scatter(x_ipca_1361[:,0],x_ipca_1361[:,1], alpha=0.3)
-	'''
-	for i, (comp,var) in enumerate(zip(ipca_1361.components_,ipca_1361.explained_variance_)):
-		comp = comp * var
-		plt.plot([0,comp[0]],[0,comp[1]],label=f'Component{i}',linewidth=5,color=f'C{i+2}')
-	'''
-	#plt.title('Clustering')
+
 	plt.plot(x_sample_1361,y_sample_1361,'r8')
 	plt.xlabel('PCA 1')
 	plt.ylabel('PCA 2')
@@ -211,7 +188,7 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	plt.xlim(0,4000)
 	plt.ylim(0,4000)
 	plt.plot(x_sample,y_sample_1355,'r8')
-	#plt.title('Clustering')
+
 	plt.xlabel('Enrichment on INSR')
 	plt.ylabel('Enrichment on pY1355')
 	for i in range(len(x_sample)):
@@ -228,7 +205,7 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	points = [(x,x) for x in range(0,4000)]
 	x_line,y_line = zip(*points)
 	plt.plot(x_line,y_line)
-	#plt.title('Clustering')
+
 	plt.xlim(0,4000)
 	plt.ylim(0,4000)
 	plt.xlabel('Enrichment on INSR')
@@ -248,7 +225,7 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	ax = plt.axes(projection='3d')
 	ax.scatter3D(x_antiinsr_pY1355_ipca[:,0],x_antiinsr_pY1355_ipca[:,1],x_antiinsr_pY1355_ipca[:,2], color='red',alpha=0.3)
 	ax.plot(x_sample,y_sample,z_sample,'b8')
-	#plt.title('Clustering')
+
 	ax.set_xlabel('PCA 1')
 	ax.set_ylabel('PCA 2')
 	ax.set_zlabel('PCA 3')
@@ -266,7 +243,7 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	ax = plt.axes(projection='3d')
 	ax.scatter3D(x_antiinsr_pY1361_ipca[:,0],x_antiinsr_pY1361_ipca[:,1],x_antiinsr_pY1361_ipca[:,2], color='red',  alpha=0.3)
 	ax.plot(x_sample,y_sample,z_sample,'b8')
-	#plt.title('Clustering')
+
 	ax.set_xlabel('PCA 1')
 	ax.set_ylabel('PCA 2')
 	ax.set_zlabel('PCA 3')
@@ -283,9 +260,9 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	z_sample = df_sample['pY1355_mixed_ipca_z']
 	ax = plt.axes(projection='3d')
 	ax.scatter3D( x_antiinsr_pY1355_ipca_mixed [:,0],x_antiinsr_pY1355_ipca_mixed [:,1],x_antiinsr_pY1355_ipca_mixed [:,2], color='red', alpha=0.3)
-	#plt.title('Clustering')
+
 	ax.plot(x_sample,y_sample,z_sample,'b8')
-	#plt.title('Clustering')
+
 	ax.set_xlabel('PCA 1')
 	ax.set_ylabel('PCA 2')
 	ax.set_zlabel('PCA 3')
@@ -302,9 +279,9 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	z_sample = df_sample['pY1361_mixed_ipca_z']
 	ax = plt.axes(projection='3d')
 	ax.scatter3D( x_antiinsr_pY1361_ipca_mixed [:,0],x_antiinsr_pY1361_ipca_mixed [:,1],x_antiinsr_pY1361_ipca_mixed [:,2], color='red',  alpha=0.3)
-	#plt.title('Clustering')
+
 	ax.plot(x_sample,y_sample,z_sample,'b8')
-	#plt.title('Clustering')
+
 	ax.set_xlabel('PCA 1')
 	ax.set_ylabel('PCA 2')
 	ax.set_zlabel('PCA 3')

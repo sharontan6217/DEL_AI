@@ -18,8 +18,7 @@ def score(df_similarity,opt,samples):
 	print(df_similarity)
 
 
-	#df_similarity['Similarity_pY1355']=1/abs( df_similarity['total_insr_pY1355_mixed_ipca']-x_min_1355)
-	#df_similarity['Similarity_pY1361']=1/abs( df_similarity['total_insr_pY1361_mixed_ipca']-x_min_1361)
+
 
 	
 	print('-------------------filtered dataframe is:------------------------')
@@ -33,7 +32,7 @@ def score(df_similarity,opt,samples):
 			codeC=samples[i][2]
 			print(df_similarity [(df_similarity ['CodeC']==codeC) & (df_similarity ['CodeB']==codeB) & (df_similarity ['CodeA']==codeA)])
 	
-	#gc.collect()
+
 
 	#df_similarity = pd.read_csv('/Users/xiaotan/Documents/chemistry/data/phase_1/result_kmeans_insr.csv')
 
