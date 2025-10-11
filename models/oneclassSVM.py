@@ -7,9 +7,27 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import gc
 import datetime
+import utils
+from utils.utils import searchCV
+def model_base():
+	global model_base
+	model_base = OneClassSVM(kernel='rbf',gamma='auto',nu=0.8,coef0=0.1,tol=1e-5)
+	return model_base
 def oneclassSVM(x,opt,currentTime,graph_dir):
-	global model
-	model = OneClassSVM(kernel='rbf',gamma='auto',nu=0.8,coef0=0.1,tol=1e-5)
+	model_base=model_base()
+	if opt.training_model.lower() == 'gridSearchCV'.lower():
+		model = searchCV.searchCV.gridSearchCV(model_base)
+	elif opt.training_model.lower() == 'halvingGridSearchCV'.lower():
+		model = searchCV.searchCV.halvingGridSearchCV(model_base)
+	elif opt.training_model.lower() == None:
+		model = model_base
+	else:
+		print("The parameter training model is not supported for now, please input one of the list  ['None', 'gridSearchCV','halvingGridSearchCV'].")
+		exit
+
+
+	print(model.get_params())
+	#model = OneClassSVM(kernel='rbf',gamma='auto',nu=0.8,coef0=0.1,tol=1e-5)
 	#x = np.reshape(x,(len(x),1))
 	model = model.fit(x)
 	y_predict = model.predict(x)
@@ -203,4 +221,4 @@ def oneclassSVM(x,opt,currentTime,graph_dir):
 	print('Score of model is: ',score_of_determination)
 
 
-	return y_predict,score_of_determination 
+	return y_predict,score_of_determination

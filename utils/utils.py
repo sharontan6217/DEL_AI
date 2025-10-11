@@ -1,6 +1,12 @@
 
 import numpy as np
-
+import pandas as pd
+import random
+import sklearn
+from sklearn.experimental import enable_halving_search_cv
+from sklearn.model_selection import GridSearchCV,ShuffleSplit,HalvingGridSearchCV
+import models
+from models import model_base,oneclassSVM
 from scipy.spatial.distance import euclidean
 class utils():
 
@@ -46,3 +52,22 @@ class utils():
             except ZeroDivisionError:
                 dist.append(1)
         return dist
+
+class searchCV():
+    def gridSearchCV(model_base):
+        param_dict = model_base.get_params()
+        print(param_dict)
+        #param_dict = {'ccp_alpha': [0.0,0.1], 'min_impurity_decrease': [0.0,0.01], 'min_samples_leaf': [1,2],  'min_weight_fraction_leaf': [0.0,0.1]}
+        #param_dict = {  'rbm_learning_rate': [0.001,0.005,0.1],'par__epsilon': [0.05,0.1],  'par__tol': [0.001,0.01]}
+        param_dict = {  'nu': [0.2,0.4,0.6,0.8],'tol': [1e-3,1e-4,5e-5,1e-5]}
+        #print(param_dict)
+        model = GridSearchCV(model_base,param_dict)
+        return model
+    def halvingGridSearchCV(model_base):
+        #param_dict = model_base.get_params()
+        #param_dict = {  'rbm__learning_rate': [0.001,0.005,0.1],'par__epsilon': [0.05,0.1],  'par__tol': [0.001,0.01]}
+        param_dict = {  'nu': [0.2,0.4,0.6,0.8],'tol': [1e-3,1e-4,5e-5,1e-5]}
+        #param_dict ={'ccp_alpha': [0.0,0.1], 'min_impurity_decrease': [0.0,0.01], 'min_samples_leaf': [1,2],  'min_weight_fraction_leaf': [0.0,0.1]}
+        #print(param_dict)
+        model = HalvingGridSearchCV(model_base,param_dict,min_resources=2)
+        return model
