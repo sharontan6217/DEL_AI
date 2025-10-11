@@ -1,10 +1,11 @@
 from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import KNeighborsClassifier, NearestCentroid, KernelDensity
+
 import pandas as pd
 import numpy as np
 import models
 from models import DBSCAN
-from scipy.spatial.distance import sqeuclidean,jaccard,canberra,cdist,euclidean
+import utils
+from utils import AEC
 from statistics import median,median_low,median_high,geometric_mean,harmonic_mean,quantiles
 import gc
 
@@ -41,10 +42,6 @@ class preprocess():
         df_normalized = pd.concat((df,df_normalized),axis=1)
 
 
-
-
-
-
         if len(samples)>0:
             for i in range(len(samples)):
                 codeA=samples[i][0]
@@ -76,10 +73,6 @@ class preprocess():
                 codeC=samples[i][2]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
-
-
-
-
         scope_balance = int(len(df)*0.4)
 
         df=df.nlargest(scope_balance , ['S1_ind','Richness_ind'])
@@ -92,13 +85,6 @@ class preprocess():
                 codeB=samples[i][1]
                 codeC=samples[i][2]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
-        #print(scope_efficiency)
-
-
-
-
-
-
 
         scope_balance_ind = int(len(df)*0.9)
         if opt.amplify_deviation_filtering.lower()=='yes':
@@ -115,7 +101,6 @@ class preprocess():
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
         scope_total_Richness = int(len(df)*0.4)
 
-        #print(scope_efficiency)
         df=df.nlargest(scope_total_Richness , ['Richness_SUM','S1_SUM'])
         print('-------------------------total Richness----------------------')
         print(len(df))
@@ -143,9 +128,6 @@ class preprocess():
         return df
     def dataPreprocess_rank(df,samples,opt):
 
-        
-        
-    
         scope_balance = int(len(df)*0.8)
 
         df=df.nlargest(scope_balance , ['S1_ind','Richness_ind'])
@@ -184,13 +166,10 @@ class preprocess():
                 codeB=samples[i][1]
                 codeC=samples[i][2]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
-        #print(scope_efficiency)
-        
-        
+
         
         scope_total_Richness = int(len(df)*0.5)
 
-        #print(scope_efficiency)
         df=df.nlargest(scope_total_Richness , ['Richness_SUM','S1_SUM'])
         print('-------------------------total Richness----------------------')
         print(len(df))
@@ -204,19 +183,18 @@ class preprocess():
 
         quasi_richness_stdev = [q for q in quantiles((df['Richness_STDEV']),n=20)][-1]
         quasi_s1_stdev = [q for q in quantiles((df['S1_STDEV']),n=20)][-1]
-        #print(quasi_richness_stdev,quasi_s1_stdev  )
+
         df=df[(df['Richness_STDEV']<quasi_richness_stdev )|(df['S1_STDEV']<quasi_s1_stdev )]
         
         if opt.amplify_deviation_filtering.lower()=='yes':
             quasi_richness_stdev = [q for q in quantiles((df['Richness_STDEV']),n=20)][-1]
             quasi_s1_stdev = [q for q in quantiles((df['S1_STDEV']),n=20)][-1]
-            #print(quasi_richness_stdev )
+
             df=df[(df['Richness_STDEV']<quasi_richness_stdev )|(df['S1_STDEV']<quasi_s1_stdev )]
 
 
         df=df[(df['S1_ind']>1)&(df['Richness_ind']>1)]
-        #df=df[(df['performance_ind_0_total']>=3)|(df['performance_ind_1_total']>=3)]
-        #df=df[(df['S1_Richness_efficiency']>0.01)&(df['S1_Richness_balance']>0.01)]
+
         print(len(df))
         if len(samples)>0:
             for i in range(len(samples)):
@@ -233,43 +211,9 @@ class preprocess():
         gc.collect()
         
         n = round
-
-        kde=KernelDensity(kernel='gaussian').fit(x)
-        dens=kde.score_samples(x)
-        #print(dens)            
-
-        average_dens=np.mean(dens)
         
-                
-        print('average density is: ', average_dens)          
-            
-        if abs(average_dens)<2:
-            min_samples_=2
-        else:
-            min_samples_=int(abs(average_dens))
-        print("min_samples are: ", min_samples_)
-        
-        x_ = np.array(x)
-        dist=[]
-        for i in range (len(x)):
-
-            dist_pair=cdist(np.array(np.reshape(x[i],(1,len(x[i])))),x_,'euclidean')
-            average_dist_= np.mean(dist_pair)
-
-            dist.append(average_dist_)
-            #print(len(dist))
-        print(len(dist))
-        average_dist=max(dist)
-        print('average distance is: ', average_dist)
-        eps_=average_dist/(2*min_samples_)
-
-        print("eps is: ", eps_)
-            
-        
-        print("min_samples are: ", min_samples_)
-        
-        
-        model_classification = DBSCAN(eps=eps_,min_samples=min_samples_)
+        eps_aec,min_samples_aec = AEC(x)
+        model_classification = DBSCAN(eps=eps_aec,min_samples=min_samples_aec)
 
         y_predict = model_classification.fit_predict(x)
         df['class'] = y_predict

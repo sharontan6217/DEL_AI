@@ -8,8 +8,44 @@ from sklearn.model_selection import GridSearchCV,ShuffleSplit,HalvingGridSearchC
 import models
 from models import model_base,oneclassSVM
 from scipy.spatial.distance import euclidean
+from sklearn.neighbors import KNeighborsClassifier, NearestCentroid, KernelDensity
+from scipy.spatial.distance import sqeuclidean,jaccard,canberra,cdist,euclidean
 class utils():
+    def AEC(x):
+        kde=KernelDensity(kernel='gaussian').fit(x)
+        dens=kde.score_samples(x)
+        #print(dens)            
 
+        average_dens=np.mean(dens)
+        
+                
+        print('average density is: ', average_dens)          
+            
+        if abs(average_dens)<2:
+            min_samples_aec=2
+        else:
+            min_samples_aec=int(abs(average_dens))
+        print("min_samples are: ", min_samples_aec)
+        
+        x_ = np.array(x)
+        dist=[]
+        for i in range (len(x)):
+
+            dist_pair=cdist(np.array(np.reshape(x[i],(1,len(x[i])))),x_,'euclidean')
+            average_dist_= np.mean(dist_pair)
+
+            dist.append(average_dist_)
+            #print(len(dist))
+        print(len(dist))
+        average_dist=max(dist)
+        print('average distance is: ', average_dist)
+        eps_aec=average_dist/(2*min_samples_aec)
+
+        print("eps is: ", eps_aec)
+            
+        
+        print("min_samples are: ", min_samples_aec)
+        return eps_aec,min_samples_aec
     def logProbability(model,x):
         #print(model)
         #model_orig = OneClassSVM(kernel='rbf',gamma='auto',nu=0.8,coef0=0.1,tol=1e-5)
@@ -52,6 +88,7 @@ class utils():
             except ZeroDivisionError:
                 dist.append(1)
         return dist
+
 
 class searchCV():
     def gridSearchCV(model_base):

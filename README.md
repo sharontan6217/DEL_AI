@@ -39,7 +39,7 @@ or
 ```shell
 'python experiment.py --level level1'
 ```
-To filter 1.03 billion dataset, we tune two to amplify the filtering of stdev related in preprocess. You can tune more by yourself for your datasets. 
+To filter 1.03 billion dataset, we tune two parameters to amplify the filtering of stdev related in preprocess. You can tune more by yourself for your datasets. 
 please run:
 ```shell
 'python experiment.py --level level0 --amplify_deviation_filtering Yes'
