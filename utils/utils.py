@@ -13,12 +13,10 @@ from scipy.spatial.distance import sqeuclidean,jaccard,canberra,cdist,euclidean
 class utils():
     def AEC(x):
         kde=KernelDensity(kernel='gaussian').fit(x)
-        dens=kde.score_samples(x)
-        #print(dens)            
+        dens=kde.score_samples(x)          
 
         average_dens=np.mean(dens)
         
-                
         print('average density is: ', average_dens)          
             
         if abs(average_dens)<2:
@@ -35,7 +33,7 @@ class utils():
             average_dist_= np.mean(dist_pair)
 
             dist.append(average_dist_)
-            #print(len(dist))
+
         print(len(dist))
         average_dist=max(dist)
         print('average distance is: ', average_dist)

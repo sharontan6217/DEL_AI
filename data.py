@@ -32,7 +32,6 @@ def dataLoading_rank(data_dir,samples):
     global cols_erh,cols_rs
     df_orig = pd.read_csv(data_dir)
     print(len(df_orig))
-    #print(df_orig.columns)
     df_orig.fillna(0, inplace=True)
 
     df_orig = df_orig[df_orig['class']==1]
@@ -262,9 +261,7 @@ def erhAnalysis(erh_dir,df_filtered,samples):
 		elif "INSR.erh" in col:
 			df_merge['total_insr'] = df_merge['total_insr']+df_merge[str(col)]
 	print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
-	#df_erh_insr = df_merge[['CodeA', 'CodeB', 'CodeC','total_pY1355','total_pY1361','total_insr','total_pY1355_mixed','total_pY1361_mixed','total_insr_pY1355_mixed','total_insr_pY1361_mixed']]
-	#df_erh_insr.fillna(0,inplace=True)
-	#df_erh_insr=df_merge
+
 	
 	cols=['richness_1355_0', 'richness_1355_1', 'richness_1361_0', 'richness_1361_1', 'richness_insr_1355_0', 'richness_insr_1355_1', 'richness_insr_1361_0', 'richness_insr_1361_1', 's1_1355_0', 's1_1355_1', 's1_1361_0', 's1_1361_1', 's1_insr_1355_0', 's1_insr_1355_1', 's1_insr_1361_0', 's1_insr_1361_1']
 	for col in df_merge.columns:
