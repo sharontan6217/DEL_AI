@@ -32,7 +32,7 @@ def get_parser():
     parser.add_argument('--output_dir',type=str,default='./output/phase_1/level_0/', help = 'directory of outputs')
     parser.add_argument('--level',type=str,default='level1', help = 'level is either "level0" or "level1". Level0 is for filtering, and level1 is for ranking.')
     parser.add_argument('--model_name',type=str,default='OneClassSVM', help = 'clustering model is one of the list ["OneClassSVM","KMeans","Spectral","BIRCH","AgglomerativeClustering","OpticsClustering"].')
-    parser.add_argument('--parameter_trainings',type=str,default='gridSearchCV', help = 'parameter trainings is one of the list  ["None", "gridSearchCV","halvingGridSearchCV"].')
+    parser.add_argument('--parameter_training',type=str,default='gridSearchCV', help = 'parameter training is one of the list  ["None", "gridSearchCV","halvingGridSearchCV"].')
     parser.add_argument('--amplify_deviation_filtering',type=str,default='No', help = 'We add a few amplifications in preporcessing as an option. Input "Yes" if the dataset is large.')
     return opt
 
