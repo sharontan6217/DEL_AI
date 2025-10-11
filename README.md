@@ -17,6 +17,7 @@ python experiment.py
     --graph_dir {graph_dir} \
     --output {output_dir} \
     --model_name {clustering_model_name} \
+    --parameter_training {parameter_training} \
     --amplify_deviation_filtering {amplify_deviation_filtering}
 ```
 
