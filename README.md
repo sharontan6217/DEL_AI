@@ -27,7 +27,7 @@ python experiment.py
 - `output_dir`,type=str,default='./output/phase_1/level_1/', 'directory of outputs'
 - `level`,type=str,default='level1', 'level is either "level0" or "level1". Level0 is for filtering, and level1 is for ranking.'
 - `model_name`,type=str,default='OneClassSVM', 'clustering model is one of the list ["OneClassSVM","KMeans","Spectral","BIRCH","AgglomerativeClustering","OpticsClustering"].'
-- `parameter_training`,type=str,default='gridSearchCV', 'parameter training is one of the list ["None","gridSearchCV","halvingGridSearchCV"].'
+- `parameter_optimizer`,type=str,default='Yes', 'OCSVM model can be auto-optimized.Default to "Yes". Can set to "No" to use the default model.'
 - `amplify_deviation_filtering`,type=str,default='No', 'We add a few amplifications in preporcessing as an option. Input "Yes" if the dataset is large.'
 
 To filter 30 million dataset

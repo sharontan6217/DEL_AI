@@ -143,6 +143,20 @@ def similarity(df_erh_insr_ipca,opt):
 		df_1['Similarity']=utils.boundary(x_1,x_0)
 	df_similarity=pd.concat((df_0,df_1),axis=0)
 	print(opt.model_name, df_0['Similarity'])
+	if opt.level.lower().replace(' ','')=='level1':
+		df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1355'] >=0)|(df_similarity['Similarity_centralLine_pY1361']>=0)]
 
+		if ct_ind_pY1355_mixed == 0:
+			df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1355_mixed_ipca']>=0)]
+			if ct_ind_pY1361_mixed == 0:
+				df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']>=0)]
+			else:
+				df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']<=0)]
+		else:
+			df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1355_mixed_ipca']<=0)]
+			if ct_ind_pY1361_mixed == 0:
+				df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']>=0)]
+			else:
+				df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']<=0)]
 	return df_similarity
 

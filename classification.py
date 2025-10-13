@@ -32,9 +32,9 @@ def classification(df_filtered,opt,samples,currentTime):
 
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			print(df_result [(df_result ['CodeC']==codeC) & (df_result ['CodeB']==codeB) & (df_result ['CodeA']==codeA)])
 	
 	result_name='output_'+opt.model_name+'.csv'

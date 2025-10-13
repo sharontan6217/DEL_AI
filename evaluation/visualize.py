@@ -43,9 +43,9 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	df_sample=pd.DataFrame()
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			df_sub=df_similarity [(df_similarity ['CodeC']==codeC) & (df_similarity ['CodeB']==codeB) & (df_similarity ['CodeA']==codeA)]
 			df_sample=pd.concat((df_sample,df_sub),axis=0)
 	else:

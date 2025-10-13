@@ -23,25 +23,28 @@ from sklearn.pipeline import make_pipeline
 from scipy.spatial.distance import sqeuclidean,jaccard,canberra,cdist,euclidean
 from statistics import median,median_low,median_high,geometric_mean,harmonic_mean,quantiles
 import matplotlib.pyplot as plt
+from models import Config
+from Config import opticsClustering_config,kmeans_config,agglomerativeClustering_config,birch_config,spectral_config
 import gc
 
 
 def opticsClustering(df,opt,samples):
 	gc.collect()
 	output_dir = opt.output_dir
+	config = Config.opticsClustering_config()
 
 	x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
 	df_result = df
-	ordering,core_distances,reachability,predecessor=compute_optics_graph(x,min_samples=2,max_eps=np.inf,metric='euclidean',p=2,metric_params=None,algorithm='auto',leaf_size=2,n_jobs=None)
+	ordering,core_distances,reachability,predecessor=compute_optics_graph(x,**config)
 	labels,clusters=cluster_optics_xi(reachability=reachability,predecessor=predecessor,ordering=ordering,min_samples=2,xi=0.00001)
 
 	y_predict = labels
 	df_result['class'] = y_predict
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 	df_result.to_csv(output_dir+'labels_opticsClustering.csv',chunksize=1000)
 
@@ -50,20 +53,21 @@ def opticsClustering(df,opt,samples):
 	return y_predict
 def kmeans(df,opt,samples):
 	gc.collect()
+	config = Config.kmeans_config()
 	output_dir = opt.output_dir
 
 	x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
 	df_result = df
-	model = KMeans(n_clusters=2,init='k-means++',algorithm='lloyd',tol=5e-4)
+	model = KMeans(**config)
 
 	model = model.fit(x)
 	y_predict = model.predict(x)
 	df_result['class'] = y_predict
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 	df_result.to_csv(output_dir+'labels_kmeans.csv',chunksize=1000)
 
@@ -80,12 +84,13 @@ def kmeans(df,opt,samples):
 
 def agglomerativeClustering(df,opt,samples):
 	gc.collect()
+	config = Config.agglomerativeClustering_config()
 	output_dir = opt.output_dir
 	x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
 
 	df_result = df
 
-	model = AgglomerativeClustering(n_clusters=2,metric='euclidean',linkage='ward',compute_distances=True)
+	model = AgglomerativeClustering(**config)
 
 	model = model.fit(x)
 	print('distance is: ',model.distances_)
@@ -94,9 +99,9 @@ def agglomerativeClustering(df,opt,samples):
 	df_result['class'] = y_predict
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 	df_result.to_csv(output_dir+'labels_agglomerative.csv',chunksize=1000)
 
@@ -106,13 +111,14 @@ def agglomerativeClustering(df,opt,samples):
 	return y_predict
 def birch(df,opt,samples):
 	gc.collect()
+	config = Config.birch_config()
 	output_dir = opt.output_dir
 
 	x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
 
 	df_result = df
 
-	model = Birch(threshold=0.7819798519436253,branching_factor=40,n_clusters=2)
+	model = Birch(**config)
 
 	model = model.fit(x)
 	y_predict = model.predict(x)
@@ -120,9 +126,9 @@ def birch(df,opt,samples):
 	df_result['class'] = y_predict
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
 	result_name='output_'+opt.model_name+'.csv'
@@ -131,21 +137,22 @@ def birch(df,opt,samples):
 	return y_predict
 def spectral(df,opt,samples):
 	gc.collect()
+	config = Config.spectral_configg()
 	output_dir = opt.output_dir
 
 	x = np.array(df[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']])
       
 	df_result = df
-	model = SpectralClustering(n_clusters=2,assign_labels='kmeans',eigen_solver='arpack',random_state=0,affinity='nearest_neighbors')
+	model = SpectralClustering(**config)
 
 	model = model.fit(x)
 	y_predict = model.labels_
 	df_result['class'] = y_predict
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
 

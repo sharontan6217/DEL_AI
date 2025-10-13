@@ -24,9 +24,9 @@ def score(df_similarity,opt,samples):
 
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			print(df_similarity [(df_similarity ['CodeC']==codeC) & (df_similarity ['CodeB']==codeB) & (df_similarity ['CodeA']==codeA)])
 
 	df_similarity_1 = df_similarity[df_similarity['class']==1]
@@ -43,6 +43,8 @@ def score(df_similarity,opt,samples):
 	df_similarity_1['Similarity_point_RANK_pY1361_mixed']=df_similarity_1['Similarity_point_pY1361_mixed'].rank(ascending=True).astype(float)
 	df_similarity_1['S1_Richness_efficiency_RANK']=df_similarity_1['S1_Richness_efficiency'].rank(ascending=False).astype(float)
 	df_similarity_1['S1_Richness_balance_RANK']=df_similarity_1['S1_Richness_balance'].rank(ascending=False).astype(float)
+	df_similarity_1['Similarity_centralLine_RANK_pY1355_mixed']=df_similarity_1['Similarity_centralLine_pY1355_mixed_ipca'].rank(ascending=True).astype(float)
+	df_similarity_1['Similarity_centralLine_RANK_pY1361_mixed']=df_similarity_1['Similarity_centralLine_pY1361_mixed_ipca'].rank(ascending=True).astype(float)
 	if opt.model_name.lower() in model_names:
 		df_similarity_1['Similarity_RANK']=df_similarity_1['Similarity'].rank(ascending=False).astype(float)
 	else:
@@ -54,24 +56,36 @@ def score(df_similarity,opt,samples):
 	if opt.amplify_deviation_filtering=='No':
 		df_similarity_1['Score']=(df_similarity_1['Similarity_centralLine_RANK_pY1355_mixed']+df_similarity_1['Similarity_centralLine_RANK_pY1361_mixed'])/2+df_similarity_1['Similarity_RANK']/2+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK']).astype(float)
 	else:
-		df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']+(df_similarity_1['Similarity_point_mixed_RANK_pY1355']+df_similarity_1['Similarity_point_mixed_RANK_pY1361'])/2+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK'])).astype(float)
+		df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']+(df_similarity_1['Similarity_point_RANK_pY1355_mixed']+df_similarity_1['Similarity_point_RANK_pY1361_mixed'])/2+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK'])).astype(float)
 	for i in range(len(df_similarity_1)):
 		weight = max(df_similarity_1['performance_ind_0_total'].values[i],df_similarity_1['performance_ind_1_total'].values[i])
-		#print(np.exp(max(weight,1)),weight)
-		#df_similarity_1 ['Score'].values[i] = np.power(df_similarity_1 ['Score'].values[i],max(weight,1))
-		
-		
-		if weight==5:
-			df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/160
-		elif weight==4:
-			df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/144
-		elif weight==3:
-			df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/32
-		elif weight==2:
-			df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/4
-		elif weight==1:
-			df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/2    
 
+		if opt.amplify_deviation_filtering.lower()=='yes':
+			if weight==6:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/108
+			elif weight==5:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/104
+			elif weight==4:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/96
+			elif weight==3:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/64
+			elif weight==2:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/4
+			elif weight==1:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/2
+                    
+
+		else: 
+			if weight==5:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/160
+			elif weight==4:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/144
+			elif weight==3:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/32
+			elif weight==2:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/4
+			elif weight==1:
+				df_similarity_1 ['Score'].values[i] = df_similarity_1 ['Score'].values[i]/2  
 
 	df_similarity_1['SCORE_RANK']=df_similarity_1['Score'].rank(ascending=True).astype(float)
 
@@ -90,6 +104,8 @@ def score(df_similarity,opt,samples):
 	df_similarity_0['Similarity_antiinsr_RANK_pY1361']=df_similarity_0['Similarity_antiinsr_1361'].rank(ascending=True).astype(float)
 	df_similarity_0['S1_Richness_efficiency_RANK']=df_similarity_0['S1_Richness_efficiency'].rank(ascending=False).astype(float)
 	df_similarity_0['S1_Richness_balance_RANK']=df_similarity_0['S1_Richness_balance'].rank(ascending=False).astype(float)
+	df_similarity_0['Similarity_centralLine_RANK_pY1355_mixed']=df_similarity_0['Similarity_centralLine_pY1355_mixed_ipca'].rank(ascending=True).astype(float)        
+	df_similarity_0['Similarity_centralLine_RANK_pY1361_mixed']=df_similarity_0['Similarity_centralLine_pY1361_mixed_ipca'].rank(ascending=True).astype(float)
 	if opt.model_name.lower() in model_names:
 		df_similarity_0['Similarity_RANK']=df_similarity_0['Similarity'].rank(ascending=False).astype(float)
 	else:
@@ -101,23 +117,38 @@ def score(df_similarity,opt,samples):
 	if opt.amplify_deviation_filtering=='No':
 		df_similarity_0['Score']=(df_similarity_0['Similarity_centralLine_RANK_pY1355_mixed']+df_similarity_0['Similarity_centralLine_RANK_pY1361_mixed'])/2+df_similarity_0['Similarity_RANK']/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK']).astype(float)
 	else: 
-		df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']+(df_similarity_0['Similarity_point_mixed_RANK_pY1355']+df_similarity_0['Similarity_point_mixed_RANK_pY1361'])/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])).astype(float)
+		df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']+(df_similarity_0['Similarity_point_RANK_pY1355_mixed']+df_similarity_0['Similarity_point_RANK_pY1361_mixed'])/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])).astype(float)
 
 	for i in range(len(df_similarity_0)):
 		
 		weight = max(df_similarity_0['performance_ind_0_total'].values[i],df_similarity_0['performance_ind_1_total'].values[i])
-		
-		if weight==5:
-			df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/160
-		elif weight==4:
-			df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/144
-		elif weight==3:
-			df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/32
-		elif weight==2:
-			df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/4
-		elif weight==1:
-			df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/2
-				
+		if opt.amplify_deviation_filtering.lower()=='yes':
+			if weight==6:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/108
+			elif weight==5:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/104
+			elif weight==4:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/96
+			elif weight==3:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/64
+			elif weight==2:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/4
+			elif weight==1:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/2
+                    
+
+		else: 
+			if weight==5:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/160
+			elif weight==4:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/144
+			elif weight==3:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/32
+			elif weight==2:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/4
+			elif weight==1:
+				df_similarity_0 ['Score'].values[i] = df_similarity_0 ['Score'].values[i]/2
+					
 
 
 	df_similarity_0['SCORE_RANK']=df_similarity_0['Score'].rank(ascending=True).astype(float)+len(df_similarity_1)
@@ -134,23 +165,27 @@ def score(df_similarity,opt,samples):
 	df_score=df_score.reset_index()
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			print(df_score [(df_score ['CodeC']==codeC) & (df_score ['CodeB']==codeB) & (df_score ['CodeA']==codeA)])
 	df_sample=pd.DataFrame()
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			df_sub=df_score [(df_score ['CodeC']==codeC) & (df_score ['CodeB']==codeB) & (df_score ['CodeA']==codeA)]
 			df_sample=pd.concat((df_sample,df_sub),axis=0)
 	
 
-	df_sample.to_csv('sample_20241017.csv')
+	df_sample.to_csv('sample_finalScore.csv')
+	if opt.amplify_deviation_filtering.lower()=='yes':
+		phase='phase2'
+	else:
+		phase='phase1'
 
-	result_name = 'output_'+opt.model_name+'_level1.csv'
+	result_name = 'output_'+opt.model_name+'_'+phase+'_'+opt.level+'.csv'
 	df_score.to_csv(opt.output_dir+result_name)
 
 	return df_score

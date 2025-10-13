@@ -6,33 +6,30 @@ from utils import utils
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from models import Config
 import gc
 import datetime
-import utils
-from utils.utils import searchCV
-def model_base():
-	global model_base
-	model_base = OneClassSVM(kernel='rbf',gamma='auto',nu=0.8,coef0=0.1,tol=1e-5)
-	return model_base
-def oneclassSVM(x,opt,currentTime,graph_dir):
-	model_base=model_base()
-	if opt.training_model.lower() == 'gridSearchCV'.lower():
-		model = searchCV.searchCV.gridSearchCV(model_base)
-	elif opt.training_model.lower() == 'halvingGridSearchCV'.lower():
-		model = searchCV.searchCV.halvingGridSearchCV(model_base)
-	elif opt.training_model.lower() == None:
-		model = model_base
+def oneclassSVM(x,opt,currentTime):
+	gc.collect()
+	graph_dir = opt.graph_dir
+	config = Config.OCS_config()
+	if opt.parameter_optimizer.lower()=='yes':
+		nu_best,coef_best = utils.optimizeOCS(x)
+		model = OneClassSVM(**config,nu=nu_best,coef0=coef_best)
 	else:
-		print("The parameter training model is not supported for now, please input one of the list  ['None', 'gridSearchCV','halvingGridSearchCV'].")
-		exit
-
-
+		model = OneClassSVM(**config,nu=0.8,coef0=0.1)
 	print(model.get_params())
 
+	'''
+	----------supervised searchcv optimization----------
+	model = utils.searchCV.gridSearchCV(model)
+	model = model.fit(x_train,y_train)
+	----------------------------------------------------
+	'''
 	model = model.fit(x)
 	y_predict = model.predict(x)
 	score_of_determination = model.score_samples(x)
-
+	'''
 	x_shap_orig = pd.DataFrame(x,columns=['Enrichment_SUM','Enrichment_STDEV','Enrichment_COUNT','S1_SUM','S1_STDEV','S1_COUNT'])
 	x_shap = shap.sample(x_shap_orig,1000)
 	x_shap.to_csv('oneClass_x.csv')
@@ -210,7 +207,7 @@ def oneclassSVM(x,opt,currentTime,graph_dir):
 	png_name='OCSVM_scatter_s1count_'+str(currentTime)+'.png'
 	plt.savefig(graph_dir+png_name)
 	plt.close() 
-
+	'''
 	y_predict[y_predict==1]=0
 	y_predict[y_predict==-1]=1
 

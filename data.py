@@ -2,10 +2,11 @@ import pandas as pd
 import numpy as np
 import os
 
-def dataLoading_filter(data_dir):
+def dataLoading_filter(data_dir,samples):
     global cols_erh,cols_rs
 	
     df_orig = pd.read_csv(data_dir)
+    print(len(df_orig))
     print(df_orig.columns)
     df_orig.fillna(0, inplace=True)
     
@@ -25,7 +26,14 @@ def dataLoading_filter(data_dir):
 
     df_orig['S1_STDEV'] = df_orig[cols_rs].std(axis=1)
     df_orig['Richness_STDEV'] = df_orig[cols_erh].std(axis=1)
-
+    
+    if len(samples)>0:
+        for i in range(len(samples)):
+            codeA=samples['CodeA'][i]
+            codeB=samples['CodeB'][i]
+            codeC=samples['CodeC'][i]
+            print(df_orig [(df_orig ['CodeC']==codeC) & (df_orig  ['CodeB']==codeB) & (df_orig  ['CodeA']==codeA)])
+	
     return df_orig
 
 def dataLoading_rank(data_dir,samples):
@@ -34,17 +42,21 @@ def dataLoading_rank(data_dir,samples):
     print(len(df_orig))
     df_orig.fillna(0, inplace=True)
 
-    df_orig = df_orig[df_orig['class']==1]
-    df_orig=df_orig[(df_orig['performance_ind_1_total']>0)|(df_orig['performance_ind_0_total']>0)]
     
-    df_orig = df_orig[['CodeA','CodeB','CodeC','Richness_SUM_orig','Richness_STDEV_orig','Richness_COUNT_orig','S1_SUM_orig','S1_STDEV_orig','S1_COUNT_orig','S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']]
+    df_orig = df_orig[df_orig['class']==1]
 
+    
+    df_orig=df_orig[(df_orig['performance_ind_1_total']>0)|(df_orig['performance_ind_0_total']>0)]
+
+
+    df_orig = df_orig[['CodeA','CodeB','CodeC','Richness_SUM_orig','Richness_STDEV_orig','Richness_COUNT_orig','S1_SUM_orig','S1_STDEV_orig','S1_COUNT_orig']]
+    df_orig.columns = df_orig.columns.str.replace('_orig','')
 
     if len(samples)>0:
         for i in range(len(samples)):
-            codeA=samples[i][0]
-            codeB=samples[i][1]
-            codeC=samples[i][2]
+            codeA=samples['CodeA'][i]
+            codeB=samples['CodeB'][i]
+            codeC=samples['CodeC'][i]
             print(df_orig [(df_orig ['CodeC']==codeC) & (df_orig  ['CodeB']==codeB) & (df_orig  ['CodeA']==codeA)])
 	
     print(len(df_orig))
@@ -262,7 +274,6 @@ def erhAnalysis(erh_dir,df_filtered,samples):
 			df_merge['total_insr'] = df_merge['total_insr']+df_merge[str(col)]
 	print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
 
-	
 	cols=['richness_1355_0', 'richness_1355_1', 'richness_1361_0', 'richness_1361_1', 'richness_insr_1355_0', 'richness_insr_1355_1', 'richness_insr_1361_0', 'richness_insr_1361_1', 's1_1355_0', 's1_1355_1', 's1_1361_0', 's1_1361_1', 's1_insr_1355_0', 's1_insr_1355_1', 's1_insr_1361_0', 's1_insr_1361_1']
 	for col in df_merge.columns:
 		if '.erh' in col:
@@ -274,9 +285,9 @@ def erhAnalysis(erh_dir,df_filtered,samples):
 
 	if len(samples)>0:
 		for i in range(len(samples)):
-			codeA=samples[i][0]
-			codeB=samples[i][1]
-			codeC=samples[i][2]
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
 			print(df_erh_insr [(df_erh_insr ['CodeC']==codeC) & (df_erh_insr  ['CodeB']==codeB) & (df_erh_insr  ['CodeA']==codeA)])
 	return df_erh_insr
 
