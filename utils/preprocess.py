@@ -89,7 +89,7 @@ class preprocess():
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
         scope_balance_ind = int(len(df)*0.8)
-        if opt.amplify_deviation_filtering.lower()=='yes':
+        if opt.amplify_filtering.lower()=='yes':
             scope_balance_ind = int(len(df)*0.9)
         df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
         print('-------------------------s1 and Richness balance II----------------------')
@@ -141,7 +141,7 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
-        if opt.amplify_deviation_filtering.lower()=='no':
+        if opt.amplify_filtering.lower()=='no':
             scope_balance_ind = len(df)
             df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
 
@@ -182,7 +182,7 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
-        if opt.amplify_deviation_filtering.lower()=='yes':
+        if opt.amplify_filtering.lower()=='yes':
             quasi_richness_sum = [q for q in quantiles((df['Richness_SUM']),n=5)][-1]
             quasi_s1_sum = [q for q in quantiles((df['S1_SUM']),n=5)][-1]
 
