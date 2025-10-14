@@ -27,8 +27,6 @@ def classification(df_filtered,opt,samples,currentTime):
 	df_result['class'] = y_predict
 	df_result = df_result.sort_values(by =['Score_OSVM'],ascending=True)
 	df_result['SCORE_RANK_OSVM']=df_result['Score_OSVM'].rank(ascending=True)
-	#df_result=  df_result.sort_values(by =['Score','performance_ind_0_total','performance_ind_1_total'],ascending=False)
-	#df_result['SCORE_RANK'] = df_result[['Score','performance_ind_0_total','performance_ind_1_total']].apply(tuple,axis=1).rank(method='dense',ascending=False)
 
 	if len(samples)>0:
 		for i in range(len(samples)):

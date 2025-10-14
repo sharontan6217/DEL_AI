@@ -28,7 +28,7 @@ python experiment.py
 - `level`,type=str,default='level1', 'level is either "level0" or "level1". Level0 is for filtering, and level1 is for ranking.'
 - `model_name`,type=str,default='OneClassSVM', 'clustering model is one of the list ["OneClassSVM","KMeans","Spectral","BIRCH","AgglomerativeClustering","OpticsClustering"].'
 - `parameter_optimizer`,type=str,default='Yes', 'OCSVM model can be auto-optimized.Default to "Yes". Can set to "No" to use the default model.'
-- `amplify_deviation_filtering`,type=str,default='No', 'We add a few amplifications in preporcessing as an option. Input "Yes" if the dataset is large.'
+- `amplify_filtering`,type=str,default='No', 'We add a few amplifications in preporcessing as an option. Input "Yes" if the dataset is large.'
 
 To filter 30 million dataset
 please run:
@@ -39,7 +39,7 @@ or
 ```shell
 'python experiment.py --level level1'
 ```
-To filter 1.03 billion dataset, we tune two parameters to amplify the filtering of stdev related in preprocess. You can tune more by yourself for your datasets. 
+To filter 1.03 billion dataset, we tune a few parameters to amplify the filtering of richness related in preprocess. You can tune more by yourself for your datasets. 
 please run:
 ```shell
 'python experiment.py --level level0 --amplify_deviation_filtering Yes'

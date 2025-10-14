@@ -29,7 +29,7 @@ def oneclassSVM(x,opt,currentTime):
 	model = model.fit(x)
 	y_predict = model.predict(x)
 	score_of_determination = model.score_samples(x)
-	'''
+
 	x_shap_orig = pd.DataFrame(x,columns=['Enrichment_SUM','Enrichment_STDEV','Enrichment_COUNT','S1_SUM','S1_STDEV','S1_COUNT'])
 	x_shap = shap.sample(x_shap_orig,1000)
 	x_shap.to_csv('oneClass_x.csv')
@@ -207,7 +207,7 @@ def oneclassSVM(x,opt,currentTime):
 	png_name='OCSVM_scatter_s1count_'+str(currentTime)+'.png'
 	plt.savefig(graph_dir+png_name)
 	plt.close() 
-	'''
+
 	y_predict[y_predict==1]=0
 	y_predict[y_predict==-1]=1
 

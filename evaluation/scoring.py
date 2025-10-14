@@ -53,10 +53,10 @@ def score(df_similarity,opt,samples):
 	df_similarity_1['Richness_COUNT_RANK']=df_similarity_1['Richness_COUNT'].rank(ascending=False).astype(float)
 	df_similarity_1['S1_SUM_RANK']=df_similarity_1['S1_SUM'].rank(ascending=False).astype(float)
 	df_similarity_1['S1_COUNT_RANK']=df_similarity_1['S1_COUNT'].rank(ascending=False).astype(float)
-	if opt.amplify_deviation_filtering=='No':
-		df_similarity_1['Score']=(df_similarity_1['Similarity_centralLine_RANK_pY1355_mixed']+df_similarity_1['Similarity_centralLine_RANK_pY1361_mixed'])/2+df_similarity_1['Similarity_RANK']/2+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK']).astype(float)
+	if opt.amplify_deviation_filtering.lower()=='yes':
+		df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']+(df_similarity_1['Similarity_centralLine_RANK_pY1355']+df_similarity_1['Similarity_centralLine_RANK_pY1361'])/2+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK'])).astype(float)
 	else:
-		df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']+(df_similarity_1['Similarity_point_RANK_pY1355_mixed']+df_similarity_1['Similarity_point_RANK_pY1361_mixed'])/2+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK'])).astype(float)
+		df_similarity_1['Score']=(df_similarity_1['Similarity_centralLine_RANK_pY1355_mixed']+df_similarity_1['Similarity_centralLine_RANK_pY1361_mixed'])/2+df_similarity_1['Similarity_RANK']/2+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK']).astype(float) 
 	for i in range(len(df_similarity_1)):
 		weight = max(df_similarity_1['performance_ind_0_total'].values[i],df_similarity_1['performance_ind_1_total'].values[i])
 
@@ -114,11 +114,12 @@ def score(df_similarity,opt,samples):
 	df_similarity_0['Richness_COUNT_RANK']=df_similarity_0['Richness_COUNT'].rank(ascending=False).astype(float)
 	df_similarity_0['S1_SUM_RANK']=df_similarity_0['S1_SUM'].rank(ascending=False).astype(float)
 	df_similarity_0['S1_COUNT_RANK']=df_similarity_0['S1_COUNT'].rank(ascending=False).astype(float)
-	if opt.amplify_deviation_filtering=='No':
-		df_similarity_0['Score']=(df_similarity_0['Similarity_centralLine_RANK_pY1355_mixed']+df_similarity_0['Similarity_centralLine_RANK_pY1361_mixed'])/2+df_similarity_0['Similarity_RANK']/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK']).astype(float)
-	else: 
-		df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']+(df_similarity_0['Similarity_point_RANK_pY1355_mixed']+df_similarity_0['Similarity_point_RANK_pY1361_mixed'])/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])).astype(float)
+	if opt.amplify_deviation_filtering.lower()=='yes':
+		df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']+(df_similarity_0['Similarity_centralLine_RANK_pY1355']+df_similarity_0['Similarity_centralLine_RANK_pY1361'])/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])).astype(float)
+	else:
+		df_similarity_0['Score']=(df_similarity_0['Similarity_centralLine_RANK_pY1355_mixed']+df_similarity_0['Similarity_centralLine_RANK_pY1361_mixed'])/2+df_similarity_0['Similarity_RANK']/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK']).astype(float) 
 
+	#df_similarity_0['Score']=(df_similarity_0['Similarity_centralLine_RANK_pY1355']+df_similarity_0['Similarity_centralLine_RANK_pY1361'])/2+(df_similarity_0['Similarity_RANK_pY1355']+df_similarity_0['Similarity_RANK_pY1361'])/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK']).astype(float)
 	for i in range(len(df_similarity_0)):
 		
 		weight = max(df_similarity_0['performance_ind_0_total'].values[i],df_similarity_0['performance_ind_1_total'].values[i])
@@ -179,12 +180,12 @@ def score(df_similarity,opt,samples):
 			df_sample=pd.concat((df_sample,df_sub),axis=0)
 	
 
-	df_sample.to_csv('sample_finalScore.csv')
+
 	if opt.amplify_deviation_filtering.lower()=='yes':
 		phase='phase2'
 	else:
 		phase='phase1'
-
+	df_sample.to_csv('sample_finalScore'+'_'+phase+'_'+opt.level+'.csv')
 	result_name = 'output_'+opt.model_name+'_'+phase+'_'+opt.level+'.csv'
 	df_score.to_csv(opt.output_dir+result_name)
 

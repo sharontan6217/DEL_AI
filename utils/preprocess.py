@@ -29,7 +29,6 @@ class preprocess():
 
         return df_orig
     def dataStandardize(df,samples):
-
         print(df.columns)
         cols = ['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']
         for col in cols:
@@ -89,10 +88,10 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
-        scope_balance_ind = int(len(df)*0.9)
+        scope_balance_ind = int(len(df)*0.8)
         if opt.amplify_deviation_filtering.lower()=='yes':
             scope_balance_ind = int(len(df)*0.9)
-            df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
+        df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
         print('-------------------------s1 and Richness balance II----------------------')
         print(len(df))
 
@@ -131,8 +130,7 @@ class preprocess():
         return df
     def dataPreprocess_rank(df,samples,opt):
         print('----------preprocess filter for most proactive candidates-------------')
-        scope_balance = int(len(df)*0.8)
-
+        scope_balance = int(len(df)*0.7)
         df=df.nlargest(scope_balance , ['S1_ind','Richness_ind'])
         print('-------------------------s1 and Richness balance I----------------------')
         print(len(df))
@@ -143,8 +141,10 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
-        scope_balance_ind = int(len(df)*0.8)
-        df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
+        if opt.amplify_deviation_filtering.lower()=='no':
+            scope_balance_ind = len(df)
+            df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
+
         print('-------------------------s1 and Richness balance II----------------------')
         print(len(df))
 
@@ -182,14 +182,22 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
-        quasi_richness_stdev = [q for q in quantiles((df['Richness_STDEV']),n=20)][-1]
-        quasi_s1_stdev = [q for q in quantiles((df['S1_STDEV']),n=20)][-1]
+        if opt.amplify_deviation_filtering.lower()=='yes':
+            quasi_richness_sum = [q for q in quantiles((df['Richness_SUM']),n=5)][-1]
+            quasi_s1_sum = [q for q in quantiles((df['S1_SUM']),n=5)][-1]
+
+            df=df[(df['Richness_SUM']>quasi_richness_sum )&(df['S1_SUM']>quasi_s1_sum )]
+
+
+        quasi_richness_stdev = [q for q in quantiles((df['Richness_STDEV']),n=25)][-1]
+        quasi_s1_stdev = [q for q in quantiles((df['S1_STDEV']),n=25)][-1]
 
         df=df[(df['Richness_STDEV']<quasi_richness_stdev )|(df['S1_STDEV']<quasi_s1_stdev )]
 
         df=df[(df['S1_ind']>1)&(df['Richness_ind']>1)]
-        print(len(df))
 
+
+        print(len(df))
         if len(samples)>0:
             for i in range(len(samples)):
                 codeA=samples['CodeA'][i]

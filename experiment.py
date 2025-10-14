@@ -29,15 +29,15 @@ def get_parser():
     parser = argparse.ArgumentParser()
     #parser.add_argument('--data_dir',type=str,default='./data/phase_1/total.csv', help = 'directory of the original data' )
     #parser.add_argument('--data_dir',type=str,default='./output/phase_1/level_0/output_OneClassSVM_level1.csv', help = 'directory of the original data' ) # this is for level 1
-    parser.add_argument('--data_dir',type=str,default='./data/phase_2/total.csv', help = 'directory of the original data' )
-    #parser.add_argument('--data_dir',type=str,default='./output/phase_2/level_0/output_OneClassSVM_phase2_level0.csv', help = 'directory of the original data' ) # this is for level 1
+    #parser.add_argument('--data_dir',type=str,default='./data/phase_2/total.csv', help = 'directory of the original data' )
+    parser.add_argument('--data_dir',type=str,default='./output/phase_2/level_0/output_OneClassSVM_phase2_level0.csv', help = 'directory of the original data' ) # this is for level 1
     parser.add_argument('--erh_dir',type=str,default='./data/phase_2/erh/', help = 'directory of erh files' )
-    parser.add_argument('--graph_dir',type=str,default='./graph/phase_2/level_0/', help = 'directory of graphs' )
-    parser.add_argument('--output_dir',type=str,default='./output/phase_2/level_0/', help = 'directory of outputs')
+    parser.add_argument('--graph_dir',type=str,default='./graph/phase_2/level_1/', help = 'directory of graphs' )
+    parser.add_argument('--output_dir',type=str,default='./output/phase_2/level_1/', help = 'directory of outputs')
     parser.add_argument('--level',type=str,default='level1', help = 'level is either "level0" or "level1". Level0 is for filtering, and level1 is for ranking.')
     parser.add_argument('--model_name',type=str,default='OneClassSVM', help = 'clustering model is one of the list ["OneClassSVM","KMeans","Spectral","BIRCH","AgglomerativeClustering","OpticsClustering"].')
-    #parser.add_argument('--parameter_training',type=str,default='gridSearchCV', help = 'parameter training is one of the list  ["None", "gridSearchCV","halvingGridSearchCV"].')
-    parser.add_argument('--amplify_deviation_filtering',type=str,default='No', help = 'We add a few amplifications in preporcessing as an option. Input "Yes" if the dataset is large.')
+    parser.add_argument('--parameter_optimizer',type=str,default='Yes', help = 'parameter training is one of the list  ["None", "gridSearchCV","halvingGridSearchCV"].')
+    parser.add_argument('--amplify_deviation_filtering',type=str,default='No', help = 'OCSVM model can be auto-optimized.Default to "Yes". Can set to "No" to use the default model.')
     opt = parser.parse_args()
     return opt
 
@@ -66,7 +66,7 @@ if __name__=='__main__':
         df = preprocess.preprocess.dataPreprocess_filter(df_normalized,samples,opt)           #binding blocks filtering for level 0 to filter the possible active candidates
     else:
         df = preprocess.preprocess.dataPreprocess_rank(df_normalized,samples,opt)             #binding blocks filtering for level 1 to filter the most proactive candidates
-
+    
     #----------------------------Auto-filtering of outliers with self-adaptive DBSCAN------------------------------
     x_efficiency = np.array(df['S1_Richness_efficiency'])
     x_efficiency = np.reshape(x_efficiency,(len(x_efficiency),1))  
@@ -102,4 +102,4 @@ if __name__=='__main__':
     del df_filtered
     del df_similarity
     del df
-
+    

@@ -7,9 +7,9 @@ def dataLoading_filter(data_dir,samples):
 	
     df_orig = pd.read_csv(data_dir)
     print(len(df_orig))
-    print(df_orig.columns)
-    df_orig.fillna(0, inplace=True)
-    
+
+
+
     columns = df_orig.columns
     cols_rs=[]
     cols_erh= []
@@ -26,7 +26,7 @@ def dataLoading_filter(data_dir,samples):
 
     df_orig['S1_STDEV'] = df_orig[cols_rs].std(axis=1)
     df_orig['Richness_STDEV'] = df_orig[cols_erh].std(axis=1)
-    
+
     if len(samples)>0:
         for i in range(len(samples)):
             codeA=samples['CodeA'][i]

@@ -73,8 +73,8 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	plt.plot(x_sample_1355,y_sample_1355,'r8')
 	plt.xlabel('PCA 1')
 	plt.ylabel('PCA 2')
-	plt.xlim(-10,10)
-	plt.ylim(-1,5)
+	#plt.xlim(0,10)
+	#plt.ylim(0,5)
 	for i in range(len(x_sample_1355)):
 		plt.text(x_sample_1355[i],y_sample_1355[i]+0.2,text_sample[i],fontsize='x-small')
 	plt.legend(loc='best')
@@ -91,8 +91,8 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	plt.plot(x_sample_1361,y_sample_1361,'r8')
 	plt.xlabel('PCA 1')
 	plt.ylabel('PCA 2')
-	plt.xlim(-10,10)
-	plt.ylim(-1,5)
+	#plt.xlim(0,10)
+	#plt.ylim(0,5)
 	for i in range(len(x_sample_1361)):
 		plt.text(x_sample_1361[i],y_sample_1361[i]+0.2,text_sample[i],fontsize='x-small')
 	plt.legend(loc='best')
