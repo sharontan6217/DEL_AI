@@ -130,7 +130,7 @@ class preprocess():
         return df
     def dataPreprocess_rank(df,samples,opt):
         print('----------preprocess filter for most proactive candidates-------------')
-        scope_balance = int(len(df)*0.7)
+        scope_balance = int(len(df)*0.6)
         df=df.nlargest(scope_balance , ['S1_ind','Richness_ind'])
         print('-------------------------s1 and Richness balance I----------------------')
         print(len(df))
@@ -140,9 +140,8 @@ class preprocess():
                 codeB=samples['CodeB'][i]
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
-
         if opt.amplify_filtering.lower()=='no':
-            scope_balance_ind = len(df)
+            scope_balance_ind = int(len(df)*0.7)
             df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
 
         print('-------------------------s1 and Richness balance II----------------------')
@@ -183,8 +182,8 @@ class preprocess():
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
         if opt.amplify_filtering.lower()=='yes':
-            quasi_richness_sum = [q for q in quantiles((df['Richness_SUM']),n=5)][-1]
-            quasi_s1_sum = [q for q in quantiles((df['S1_SUM']),n=5)][-1]
+            quasi_richness_sum = [q for q in quantiles((df['Richness_SUM']),n=5)][-2]
+            quasi_s1_sum = [q for q in quantiles((df['S1_SUM']),n=5)][-2]
 
             df=df[(df['Richness_SUM']>quasi_richness_sum )&(df['S1_SUM']>quasi_s1_sum )]
 

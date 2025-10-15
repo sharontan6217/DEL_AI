@@ -77,25 +77,29 @@ def similarity(df_erh_insr_ipca,opt):
 	erh_array_1361_mixed = np.array(df[['total_insr_pY1361_mixed_ipca','total_insr_pY1361_mixed_ipca']])
 	print(x_min_1355_mixed,x_min_1361_mixed,y_min_1355_mixed,y_min_1361_mixed)
 	print(x_min_1355_mixed,x_min_1361_mixed,x_argmin_1355_mixed,x_argmin_1361_mixed,y_min_1361_mixed,y_argmin_1361_mixed)
-	df_xmin_pY1355_mixed= df[df['total_insr_pY1355_mixed_ipca']<x_argmin_1355_mixed]
-
-	df_ymin_pY1355_mixed = df_xmin_pY1355_mixed[df_xmin_pY1355_mixed['total_pY1355_mixed_ipca']<y_argmin_1355_mixed]
-
-	if len(df_ymin_pY1355_mixed)>0:
+	#df_xmin_pY1355_mixed= df[df['total_insr_pY1355_mixed_ipca']<x_argmin_1355_mixed]
+	#print('df_xmin_pY1355_mixed')
+	#print(df_xmin_pY1355_mixed)
+	#df_ymin_pY1355_mixed = df_xmin_pY1355_mixed[df_xmin_pY1355_mixed['total_pY1355_mixed_ipca']<y_argmin_1355_mixed]
+	#print('df_ymin_pY1355_mixed')
+	#print(df_ymin_pY1355_mixed)
+	if abs(x_min_1355_mixed)>abs(x_argmin_1355_mixed):
 		ct_ind_pY1355_mixed= 1
 	else:
 		ct_ind_pY1355_mixed = 0
-	df_xmin_pY1361_mixed= df[df['total_insr_pY1361_mixed_ipca']<x_argmin_1361_mixed]
-
-	df_ymin_pY1361_mixed = df_xmin_pY1361_mixed[df_xmin_pY1361_mixed['total_pY1361_mixed_ipca']<y_argmin_1361_mixed]
-
-	if len(df_ymin_pY1361_mixed)>0:
+	#df_xmin_pY1361_mixed= df[df['total_insr_pY1361_mixed_ipca']<x_argmin_1361_mixed]
+	#print('df_xmin_pY1361_mixed')
+	#print(df_xmin_pY1361_mixed)
+	#df_ymin_pY1361_mixed = df_xmin_pY1361_mixed[df_xmin_pY1361_mixed['total_pY1361_mixed_ipca']<y_argmin_1361_mixed]
+	#print('df_ymin_pY1361_mixed')
+	#print(df_ymin_pY1361_mixed)
+	if abs(x_min_1361_mixed)>abs(x_argmin_1361_mixed):
 		ct_ind_pY1361_mixed= 1
 	else:
 		ct_ind_pY1361_mixed = 0
 
-
 	
+
 	if ct_ind_pY1355_mixed == 1:
 
 		df['Similarity_antiinsr_1355'] = 1/(df['total_insr_pY1355_mixed_ipca']-x_min_1355_mixed)
@@ -110,7 +114,7 @@ def similarity(df_erh_insr_ipca,opt):
 		df['Similarity_antiinsr_1355'] = 1/(df['total_pY1355_mixed_ipca']-y_min_1355_mixed)
 		x_min_1355_mixed_ipca = x_min_1355_mixed
 		y_min_1355_mixed_ipca = df['total_pY1355_mixed_ipca']  [np.argmin(df['total_insr_pY1355_mixed_ipca'])]
-		
+			
 		df['Similarity_centralLine_pY1355_mixed_ipca'] = ( df['total_pY1355_mixed_ipca']-y_min_1355_mixed_ipca)
 		c_1355_mixed = [x_min_1355_mixed_ipca,y_min_1355_mixed_ipca]
 		df['Similarity_point_pY1355_mixed'] = utils.distanceCP(erh_array_1355_mixed,c_1355_mixed)
@@ -134,6 +138,7 @@ def similarity(df_erh_insr_ipca,opt):
 		c_1361_mixed = [x_min_1361_mixed_ipca,y_min_1361_mixed_ipca]   
 		df['Similarity_point_pY1361_mixed'] = utils.distanceCP(erh_array_1361_mixed,c_1361_mixed)
 		print('central line is along fixed y ', y_min_1361_mixed_ipca )
+
 	df_0 = df[df['class']==0]
 	df_1 = df[df['class']==1]
 	x_0= df_0[['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']]
@@ -151,34 +156,10 @@ def similarity(df_erh_insr_ipca,opt):
 	print(ct_ind_pY1361_mixed,ct_ind_pY1355_mixed,ct_ind_pY1355,ct_ind_pY1361)
 	print(abs(x_min_1355_mixed),abs(x_argmin_1355_mixed),abs(y_min_1355_mixed),abs(y_argmin_1355_mixed))
 
-	if opt.level.lower().replace(' ','')=='level2':
-		if abs(x_min_1355_mixed)>abs(x_argmin_1355_mixed):
-			if ct_ind_pY1355_mixed == 0:
+	if opt.level.lower().replace(' ','')=='level1':
+		#df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1355'] >=0)|(df_similarity['Similarity_centralLine_pY1361']>=0)]
+		df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1355_mixed_ipca']>=0)&(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']>=0)]
 
-				df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1355_mixed_ipca']>=0)]
-				if ct_ind_pY1361_mixed == 0:
-						df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']<=0)]
-				else:
-					df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']>=0)]
-			else:
-				df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1355_mixed_ipca']>=0)]
-				if ct_ind_pY1361_mixed == 0:
-					df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']<=0)]
-				else:
-					df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']>=0)]
-		else:
-			if ct_ind_pY1355_mixed == 0:
 
-				df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1355_mixed_ipca']>=0)]
-				if ct_ind_pY1361_mixed == 0:
-						df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']>=0)]
-				else:
-					df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']<=0)]
-			else:
-				df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1355_mixed_ipca']<=0)]
-				if ct_ind_pY1361_mixed == 0:
-					df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']>=0)]
-				else:
-					df_similarity = df_similarity[(df_similarity['Similarity_centralLine_pY1361_mixed_ipca']<=0)]
 	return df_similarity
 

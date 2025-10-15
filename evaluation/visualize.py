@@ -124,12 +124,12 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	x_sample = df_sample['total_insr_pY1361_mixed']
 	y_sample_1361 = df_sample['total_pY1361_mixed']
 	plt.scatter(x_erh_1361[:,0],x_erh_1361[:,1], alpha=0.3)
-	points = [(x,x) for x in range(0,2000)]
+	points = [(x,x) for x in range(0,4000)]
 	x_line,y_line = zip(*points)
 	plt.plot(x_line,y_line)
 
-	plt.xlim(0,2000)
-	plt.ylim(0,2000)
+	plt.xlim(0,4000)
+	plt.ylim(0,4000)
 	plt.xlabel('Enrichment on Anti-INSR')
 	plt.ylabel('Enrichment on Anti-pY1361')
 	plt.plot(x_sample,y_sample_1361,'r8')
