@@ -294,3 +294,188 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	plt.close()  
 	return fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_10,fig_11
 
+def Visualize_tpor(x,df_similarity,y_predict,df_score,samples,opt):
+	graph_dir = opt.graph_dir
+	model_name = opt.model_name
+
+	currentTime=str(datetime.datetime.now()).replace(':','_')
+	x_ipca_626 = np.array(df_similarity[['total_tpor_pY626_mixed_ipca','total_pY626_mixed_ipca']])
+
+	x_erh_626 = np.array(df_similarity[['total_tpor_pY626_mixed','total_pY626_mixed']])    
+
+	x_antitpor_pY626_ipca = np.array(df_similarity[['pY626_ipca_x','pY626_ipca_y','pY626_ipca_z']])   
+
+	x_antitpor_pY626_ipca_mixed = np.array(df_similarity[['pY626_mixed_ipca_x','pY626_mixed_ipca_y','pY626_mixed_ipca_z']])   
+
+	x_ipca= ipca.ipca(x,2 )
+	df_ipca = pd.DataFrame( x_ipca )
+	df_ipca['y'] = y_predict
+	plt.scatter(df_ipca[df_ipca['y']==1][0],df_ipca[df_ipca['y']==1][1],label='cluster positive',color='red')
+	plt.scatter(df_ipca[df_ipca['y']==0][0],df_ipca[df_ipca['y']==0][1],label='cluster negative',color='blue')
+
+	plt.xlabel('PCA1')
+	plt.ylabel('PCA2')
+	plt.legend(loc='best')
+	fig_1=plt.gcf()
+	png_name_roc='output_'+opt.model_name+'_'+str(currentTime)+'.png'
+	plt.savefig(graph_dir+png_name_roc)
+	plt.close()       
+    
+
+
+	df_sample=pd.DataFrame()
+	if len(samples)>0:
+		for i in range(len(samples)):
+			codeA=samples['CodeA'][i]
+			codeB=samples['CodeB'][i]
+			codeC=samples['CodeC'][i]
+			df_sub=df_similarity [(df_similarity ['CodeC']==codeC) & (df_similarity ['CodeB']==codeB) & (df_similarity ['CodeA']==codeA)]
+			df_sample=pd.concat((df_sample,df_sub),axis=0)
+	else:
+		for i in range(10):
+			codeA=df_score['CodeA'][i]
+			codeB=df_score['CodeB'][i]
+			codeC=df_score['CodeC'][i]
+			df_sub=df_score [(df_score ['CodeC']==codeC) & (df_score ['CodeB']==codeB) & (df_score ['CodeA']==codeA)]
+			df_sample=pd.concat((df_sample,df_sub),axis=0)
+
+	df_sample = df_sample.reset_index()
+	print('-----------samples are----------------')
+	print(df_sample)
+	text_sample=df_sample['CodeA'].astype(str)+'-'+df_sample['CodeB'].astype(str)+'-'+df_sample['CodeC'].astype(str)
+	
+
+	
+
+	x_sample_626 = df_sample['total_tpor_pY626_mixed_ipca']
+	y_sample_626 = df_sample['total_pY626_mixed_ipca']
+	print(df_sample)
+	plt.scatter(x_ipca_626[:,0],x_ipca_626[:,1], alpha=0.3)
+
+
+	plt.plot(x_sample_626,y_sample_626,'r8')
+	plt.xlabel('PCA 1')
+	plt.ylabel('PCA 2')
+	#plt.xlim(0,10)
+	#plt.ylim(0,5)
+	for i in range(len(x_sample_626)):
+		plt.text(x_sample_626[i],y_sample_626[i]+0.2,text_sample[i],fontsize='x-small')
+	plt.legend(loc='best')
+	fig_2=plt.gcf()
+	png_name_roc='output_ipca_pY626_mixed_'+str(currentTime)+'.png'
+	plt.savefig(graph_dir+png_name_roc)
+	plt.close()  
+
+
+
+	x_sample = df_sample['total_tpor_pY626_mixed']
+	y_sample_626 = df_sample['total_pY626_mixed']
+	plt.scatter(x_erh_626[:,0],x_erh_626[:,1], alpha=0.3)
+	points = [(x,x) for x in range(0,4000)]
+	x_line,y_line = zip(*points)
+	plt.plot(x_line,y_line)
+	plt.xlim(0,4000)
+	plt.ylim(0,4000)
+	plt.plot(x_sample,y_sample_626,'r8')
+	#plt.title('Clustering')
+	plt.xlabel('Enrichment on Anti-tpor')
+	plt.ylabel('Enrichment on Anti- pY626')
+	for i in range(len(x_sample)):
+		plt.text(x_sample[i],y_sample_626[i]+0.2,text_sample[i],fontsize='x-small')
+	plt.legend(loc='best')
+	fig_4=plt.gcf()
+	png_name_roc='output_ipca_pY626_orig_mixed_'+str(currentTime)+'.png'
+	plt.savefig(graph_dir+png_name_roc)
+	plt.close()  
+
+
+	x_ipca_626 = np.array(df_similarity[['total_tpor_626_ipca','total_pY626_ipca']])
+
+	x_erh_626 = np.array(df_similarity[['total_tpor','total_pY626']])    
+
+
+	x_sample_626 = df_sample['total_tpor_626_ipca']
+	y_sample_626 = df_sample['total_pY626_ipca']
+	print(df_sample)
+	plt.scatter(x_ipca_626[:,0],x_ipca_626[:,1], alpha=0.3)
+
+
+	plt.plot(x_sample_626,y_sample_626,'r8')
+	plt.xlabel('PCA 1')
+	plt.ylabel('PCA 2')
+	for i in range(len(x_sample_626)):
+		plt.text(x_sample_626[i],y_sample_626[i]+0.2,text_sample[i],fontsize='x-small')
+	plt.legend(loc='best')
+	fig_6=plt.gcf()
+	png_name_roc='output_ipca_pY626_'+str(currentTime)+'.png'
+	plt.savefig(graph_dir+png_name_roc)
+	plt.close()  
+
+
+	
+	x_sample = df_sample['total_tpor']
+	y_sample_626 = df_sample['total_pY626']
+	plt.scatter(x_erh_626[:,0],x_erh_626[:,1], alpha=0.3)
+	points = [(x,x) for x in range(0,4000)]
+	x_line,y_line = zip(*points)
+	plt.plot(x_line,y_line)
+	plt.xlim(0,4000)
+	plt.ylim(0,4000)
+	plt.plot(x_sample,y_sample_626,'r8')
+
+	plt.xlabel('Enrichment on tpor')
+	plt.ylabel('Enrichment on pY626')
+	for i in range(len(x_sample)):
+		plt.text(x_sample[i],y_sample_626[i]+0.2,text_sample[i],fontsize='x-small')
+	plt.legend(loc='best')
+	fig_8=plt.gcf()
+	png_name_roc='output_ipca_pY626_orig_'+str(currentTime)+'.png'
+	plt.savefig(graph_dir+png_name_roc)
+	plt.close()  
+
+
+
+	x_sample = df_sample['pY626_ipca_x']
+	y_sample = df_sample['pY626_ipca_y']
+	z_sample = df_sample['pY626_ipca_z']
+	ax = plt.axes(projection='3d')
+	ax.scatter3D(x_antitpor_pY626_ipca[:,0],x_antitpor_pY626_ipca[:,1],x_antitpor_pY626_ipca[:,2], color='red',alpha=0.3)
+	ax.plot(x_sample,y_sample,z_sample,'b8')
+
+	ax.set_xlabel('PCA 1')
+	ax.set_ylabel('PCA 2')
+	ax.set_zlabel('PCA 3')
+	for i in range(len(x_sample)):
+		ax.text(x_sample[i],y_sample[i]+0.2,z_sample[i],text_sample[i],fontsize='x-small')
+	plt.legend(loc='best')
+	fig_10=plt.gcf()
+	png_name_roc='output_ipca_antitpor_pY626_'+str(currentTime)+'.png'
+	plt.savefig(graph_dir+png_name_roc)
+	plt.close()  
+
+
+
+	x_sample = df_sample['pY626_mixed_ipca_x']
+	y_sample = df_sample['pY626_mixed_ipca_y']
+	z_sample = df_sample['pY626_mixed_ipca_z']
+	ax = plt.axes(projection='3d')
+	ax.scatter3D( x_antitpor_pY626_ipca_mixed [:,0],x_antitpor_pY626_ipca_mixed [:,1],x_antitpor_pY626_ipca_mixed [:,2], color='red', alpha=0.3)
+
+	ax.plot(x_sample,y_sample,z_sample,'b8')
+
+	ax.set_xlabel('PCA 1')
+	ax.set_ylabel('PCA 2')
+	ax.set_zlabel('PCA 3')
+	for i in range(len(x_sample)):
+		ax.text(x_sample[i],y_sample[i]+0.2,z_sample[i],text_sample[i],fontsize='x-small')
+	plt.legend(loc='best')
+	fig_12=plt.gcf()
+	png_name_roc='output_ipca_antitpor_pY626_mixed_'+str(currentTime)+'.png'
+	plt.savefig(graph_dir+png_name_roc)
+	plt.close()  
+
+
+	ax.plot(x_sample,y_sample,z_sample,'b8')
+
+
+	return fig_1,fig_2,fig_4,fig_6,fig_8,fig_10

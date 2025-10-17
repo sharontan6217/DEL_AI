@@ -210,6 +210,7 @@ def oneclassSVM(x,opt,currentTime):
 	'''
 	y_predict[y_predict==1]=0
 	y_predict[y_predict==-1]=1
+	print(y_predict)
 
 	print('Score of model is: ',score_of_determination)
 

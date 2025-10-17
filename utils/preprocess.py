@@ -50,10 +50,10 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df_normalized [(df_normalized ['CodeC']==codeC) & (df_normalized ['CodeB']==codeB) & (df_normalized ['CodeA']==codeA)])
 
-
         return df_normalized
     def dataPreprocess_filter(df,samples,opt):
         df=df[(df['S1_SUM']>0)&(df['Richness_SUM']>0)&(df['S1_COUNT']>0)&(df['Richness_COUNT']>0)]
+
         print('----------preprocess filter for active candidates-------------')
         print(len(df))
         if len(samples)>0:
@@ -141,7 +141,7 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
         if opt.amplify_filtering.lower()=='no':
-            scope_balance_ind = int(len(df)*0.7)
+            scope_balance_ind = int(len(df)*0.8)
             df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
 
         print('-------------------------s1 and Richness balance II----------------------')
