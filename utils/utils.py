@@ -5,14 +5,12 @@ import random
 import sklearn
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import GridSearchCV,ShuffleSplit,HalvingGridSearchCV
-from sklearn.metrics import silhouette_score,calinski_harabasz_score
 from sklearn.svm import OneClassSVM
 import models
 from models import oneclassSVM, Config
 from scipy.spatial.distance import euclidean
 from sklearn.neighbors import KNeighborsClassifier, NearestCentroid, KernelDensity
 from scipy.spatial.distance import sqeuclidean,jaccard,canberra,cdist,euclidean
-import gc
 def AEC(x):
 	kde=KernelDensity(kernel='gaussian').fit(x)
 	dens=kde.score_samples(x)          
@@ -87,13 +85,10 @@ def optimizeOCS(x):
 	score_list=[]
 	for nu_ in nus:
 		for coef_ in coefs:
-			gc.collect()
 			config = Config.OCS_config()
 			model_search = OneClassSVM(**config,nu=nu_,coef0=coef_)
 			model_search = model_search.fit(x)
-			#y = model_search.predict(x)
 			score_search = np.mean((model_search.score_samples(x)))
-			#score_search = silhouette_score(x,y)
 			nu_list.append(nu_)
 			coef_list.append(coef_)
 			score_list.append(score_search)
@@ -101,8 +96,6 @@ def optimizeOCS(x):
 	df_models['nu']=nu_list
 	df_models['coef']=coef_list
 	df_models['score']=score_list
-	print(df_models)
-
 	diff=[]
 	for i in range(len(df_models)):
 		if i==0:
@@ -110,12 +103,9 @@ def optimizeOCS(x):
 		else:
 			diff.append(df_models['score'][i]-df_models['score'][i-1])
 	df_models['diff']=diff
-	
 	nu_best = df_models['nu'][np.argmax(df_models['diff'])]
 	coef_best = df_models['coef'][np.argmax(df_models['diff'])]
-
-	#nu_best = df_models['nu'][np.argmax(df_models['score'])]
-	#coef_best = df_models['coef'][np.argmax(df_models['score'])]
+	
 	return nu_best,coef_best
 class searchCV():
     def gridSearchCV(model_base):
@@ -123,7 +113,7 @@ class searchCV():
         print(param_dict)
         #param_dict = {'ccp_alpha': [0.0,0.1], 'min_impurity_decrease': [0.0,0.01], 'min_samples_leaf': [1,2],  'min_weight_fraction_leaf': [0.0,0.1]}
         #param_dict = {  'rbm_learning_rate': [0.001,0.005,0.1],'par__epsilon': [0.05,0.1],  'par__tol': [0.001,0.01]}
-        param_dict = {  'nu': [0.02,0.04,0.06,0.08,0.09],'tol': [1e-3,1e-4,5e-5,1e-5]}
+        param_dict = {  'nu': [0.2,0.4,0.6,0.8],'tol': [1e-3,1e-4,5e-5,1e-5]}
         #print(param_dict)
         model = GridSearchCV(model_base,param_dict,score='f1')
         return model

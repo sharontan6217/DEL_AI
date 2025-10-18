@@ -74,9 +74,10 @@ def ipcaAnalysis(df_erh_insr,df_result):
     df_erh_insr_ipca['pY1361_mixed_ipca_x'] = x_erh_1361_ipca_mixed[:,0] 
     df_erh_insr_ipca['pY1361_mixed_ipca_y'] = x_erh_1361_ipca_mixed[:,1] 
     df_erh_insr_ipca['pY1361_mixed_ipca_z'] = x_erh_1361_ipca_mixed[:,2] 
+    print('ipca columns:')
+    print(df_erh_insr_ipca.columns)
 
     return df_erh_insr_ipca
-
 def ipcaAnalysis_tpor(df_erh_tpor,df_result):
     gc.collect()
     print(df_erh_tpor.columns)

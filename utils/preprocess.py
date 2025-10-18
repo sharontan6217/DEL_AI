@@ -11,6 +11,8 @@ import gc
 scaler =StandardScaler()
 class preprocess():
     def descriptors(df_orig,samples):
+        print('descriptor is')
+        print(df_orig)
         print(df_orig.columns)
         df_orig=df_orig[(df_orig['S1_SUM']>0)&(df_orig['Richness_SUM']>0)&(df_orig['S1_COUNT']>0)&(df_orig['Richness_COUNT']>0)&(df_orig['S1_STDEV']>0)&(df_orig['Richness_STDEV']>0)]
         df_orig['S1_ind']  = df_orig['S1_SUM']/df_orig['S1_STDEV']
@@ -26,21 +28,24 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(codeA,codeB,codeC)
                 print(df_orig [(df_orig ['CodeC']==codeC) & (df_orig ['CodeB']==codeB) & (df_orig ['CodeA']==codeA)])
-
+        print(df_orig)
         return df_orig
-    def dataStandardize(df,samples):
-        print(df.columns)
+    def dataStandardize(df_orig,samples):
+        print(df_orig.columns)
+        print('original dataframe is')
+        print(df_orig)
         cols = ['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']
         for col in cols:
-            df[col+'_orig']=df[col]
+            df_orig[col+'_orig']=df_orig[col]
 
-        df_ = df[cols]
-        df = df.drop(cols,axis=1)
+        df_ = df_orig[cols]
+        df_orig = df_orig.drop(cols,axis=1)
+        print(df_.values)
 
 
         df_normalized  = pd.DataFrame(scaler.fit_transform(df_.values),columns=df_.columns,index=df_.index)
         print(df_normalized.columns)
-        df_normalized = pd.concat((df,df_normalized),axis=1)
+        df_normalized = pd.concat((df_orig,df_normalized),axis=1)
 
 
         if len(samples)>0:
@@ -50,10 +55,10 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df_normalized [(df_normalized ['CodeC']==codeC) & (df_normalized ['CodeB']==codeB) & (df_normalized ['CodeA']==codeA)])
 
+
         return df_normalized
     def dataPreprocess_filter(df,samples,opt):
         df=df[(df['S1_SUM']>0)&(df['Richness_SUM']>0)&(df['S1_COUNT']>0)&(df['Richness_COUNT']>0)]
-
         print('----------preprocess filter for active candidates-------------')
         print(len(df))
         if len(samples)>0:
@@ -141,7 +146,7 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
         if opt.amplify_filtering.lower()=='no':
-            scope_balance_ind = int(len(df)*0.8)
+            scope_balance_ind = int(len(df)*0.75)
             df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
 
         print('-------------------------s1 and Richness balance II----------------------')

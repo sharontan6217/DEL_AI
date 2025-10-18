@@ -7,7 +7,7 @@ def dataLoading_filter(data_dir,samples):
 	
     df_orig = pd.read_csv(data_dir)
     print(len(df_orig))
-    print(df_orig [(df_orig ['CodeC']==192) & (df_orig  ['CodeB']==247) & (df_orig  ['CodeA']==167)])
+
     '''
     columns = df_orig.columns
     cols_rs=[]
@@ -38,19 +38,20 @@ def dataLoading_filter(data_dir,samples):
 def dataLoading_rank(data_dir,samples):
     global cols_erh,cols_rs
     df_orig = pd.read_csv(data_dir)
-    print(len(df_orig))
+    print(df_orig[df_orig['class']==1])
+    print(df_orig[df_orig['class']==1])
     df_orig.fillna(0, inplace=True)
-
+    print(df_orig[df_orig['class']==1])
     
     df_orig = df_orig[df_orig['class']==1]
-
+    print(df_orig)
     
     df_orig=df_orig[(df_orig['performance_ind_1_total']>0)|(df_orig['performance_ind_0_total']>0)]
 
 
     df_orig = df_orig[['CodeA','CodeB','CodeC','Richness_SUM_orig','Richness_STDEV_orig','Richness_COUNT_orig','S1_SUM_orig','S1_STDEV_orig','S1_COUNT_orig']]
     df_orig.columns = df_orig.columns.str.replace('_orig','')
-
+    print(df_orig)
     if len(samples)>0:
         for i in range(len(samples)):
             codeA=samples['CodeA'][i]
@@ -277,10 +278,11 @@ def erhAnalysis(erh_dir,df_filtered,samples):
 	for col in df_merge.columns:
 		if '.erh' in col:
 			cols.append(col)
-			cols.append('class')
+		cols.append('class')
 	print('columns to be dropped are: ',cols)
 	df_erh_insr =df_merge.drop(cols,axis=1)
 	print(df_erh_insr.columns)
+	print(df_merge)
 
 	if len(samples)>0:
 		for i in range(len(samples)):
@@ -289,7 +291,6 @@ def erhAnalysis(erh_dir,df_filtered,samples):
 			codeC=samples['CodeC'][i]
 			print(df_erh_insr [(df_erh_insr ['CodeC']==codeC) & (df_erh_insr  ['CodeB']==codeB) & (df_erh_insr  ['CodeA']==codeA)])
 	return df_erh_insr
-
 def erhAnalysis_tpor(erh_dir,df_filtered,samples):
 	print(len(df_filtered))
 	df_merge = df_filtered

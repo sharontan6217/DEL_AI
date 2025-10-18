@@ -57,7 +57,6 @@ def score(df_similarity,opt,samples):
 
 		df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']+(df_similarity_1['Similarity_antiinsr_RANK_pY1355']+df_similarity_1['Similarity_antiinsr_RANK_pY1361'])/2+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK'])/2).astype(float)
 	else:
-		df_similarity_1['Score']=(df_similarity_1['Similarity_centralLine_RANK_pY1355_mixed']+df_similarity_1['Similarity_centralLine_RANK_pY1361_mixed'])/2+df_similarity_1['Similarity_RANK']/2+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK'])
 		#df_similarity_1['Score']=((df_similarity_1['Similarity_centralLine_RANK_pY1355']+df_similarity_1['Similarity_centralLine_RANK_pY1361'])+(df_similarity_1['Similarity_RANK_pY1355']+df_similarity_1['Similarity_RANK_pY1361'])).astype(float)
 		#df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']/2+(df_similarity_1['Similarity_point_RANK_pY1355_mixed']+df_similarity_1['Similarity_point_RANK_pY1361_mixed'])+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK'])).astype(float)
         #df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']/2+(df_similarity_1['Similarity_antiinsr_RANK_pY1355']+df_similarity_1['Similarity_antiinsr_RANK_pY1361'])/2+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK'])).astype(float)
@@ -69,7 +68,7 @@ def score(df_similarity,opt,samples):
         #df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']+(df_similarity_1['Similarity_point_RANK_pY1355_mixed']+df_similarity_1['Similarity_point_RANK_pY1361_mixed'])+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK']+df_similarity_1['S1_COUNT_RANK']+df_similarity_1['S1_SUM_RANK'])/4).astype(float)  
         #df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']+(df_similarity_1['Similarity_point_RANK_pY1355_mixed']+df_similarity_1['Similarity_point_RANK_pY1361_mixed'])+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK'])).astype(float)
         #df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']+(df_similarity_1['Similarity_point_RANK_pY1355_mixed']+df_similarity_1['Similarity_point_RANK_pY1361_mixed'])).astype(float)
-		#df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']*0.5+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK']) +(df_similarity_1['Similarity_RANK_pY1355']+df_similarity_1['Similarity_RANK_pY1361']) /2 ).astype(float)
+		df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']*0.5+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK']) +(df_similarity_1['Similarity_RANK_pY1355']+df_similarity_1['Similarity_RANK_pY1361']) /2 ).astype(float)
         #df_similarity_1['Score']=(df_similarity_1['Similarity_RANK']+(df_similarity_1['S1_Richness_balance_RANK']+df_similarity_1['S1_Richness_efficiency_RANK'])*0.5).astype(float)
         #df_similarity_1['Score']=df_similarity_1['Similarity_centralLine']+df_similarity_1['Similarity_RANK']+df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK']
         #df_similarity_1['Score']=df_similarity_1['Similarity_RANK_pY1355']+df_similarity_1['Similarity_RANK_pY1361']+df_similarity_1['Similarity_RANK']+(df_similarity_1['Richness_COUNT_RANK']+df_similarity_1['Richness_SUM_RANK'])/2
@@ -142,7 +141,7 @@ def score(df_similarity,opt,samples):
 		#df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']/2+(df_similarity_0['Similarity_point_RANK_pY1355_mixed']+df_similarity_0['Similarity_point_RANK_pY1361_mixed'])+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])).astype(float)
 		#df_similarity_0['Score']=df_similarity_0['Similarity_RANK']/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])/2
 		#df_similarity_0['Score']=df_similarity_0['Similarity_RANK']+df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])/2        
-		df_similarity_0['Score']=(df_similarity_0['Similarity_centralLine_RANK_pY1355_mixed']+df_similarity_0['Similarity_centralLine_RANK_pY1361_mixed'])/2+df_similarity_0['Similarity_RANK']/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])  
+		
         #df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']+(df_similarity_0['Similarity_point_RANK_pY1355_mixed']+df_similarity_0['Similarity_point_RANK_pY1361_mixed'])+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK']+df_similarity_0['S1_COUNT_RANK']+df_similarity_0['S1_SUM_RANK'])/4).astype(float) 
         #df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']+df_similarity_0['Similarity_point_RANK_pY1355_mixed']+df_similarity_0['Similarity_point_RANK_pY1361_mixed']).astype(float)
         #df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']/2+(df_similarity_0['Similarity_point_RANK_pY1355_mixed']+df_similarity_0['Similarity_point_RANK_pY1361_mixed'])+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])).astype(float)
@@ -152,7 +151,7 @@ def score(df_similarity,opt,samples):
         #df_similarity_0['Score']=df_similarity_0['Similarity_RANK']+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])
         #df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']+(df_similarity_0['S1_Richness_balance_RANK']+df_similarity_0['S1_Richness_efficiency_RANK'])*0.5).astype(float)
         #df_similarity_0['Score']=((df_similarity_0['Similarity_RANK_pY1355']+df_similarity_0['Similarity_RANK_pY1361'])*0.5+df_similarity_0['Similarity_RANK']).astype(float)       
-		#df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']*0.5+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])+(df_similarity_0['Similarity_RANK_pY1355']+df_similarity_0['Similarity_RANK_pY1361'])/2).astype(float)
+		df_similarity_0['Score']=(df_similarity_0['Similarity_RANK']*0.5+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])+(df_similarity_0['Similarity_RANK_pY1355']+df_similarity_0['Similarity_RANK_pY1361'])/2).astype(float)
         #df_similarity_0['Score']=df_similarity_0['Similarity_centralLine']+df_similarity_0['Similarity_RANK']+df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK']
         #df_similarity_0['Score']=df_similarity_0['Similarity_RANK_pY1355']+df_similarity_0['Similarity_RANK_pY1361']+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK'])/2
 		#df_similarity_0['Score']=(df_similarity_0['Similarity_centralLine_RANK_pY1355']+df_similarity_0['Similarity_centralLine_RANK_pY1361'])/2+(df_similarity_0['Similarity_RANK_pY1355']+df_similarity_0['Similarity_RANK_pY1361'])/2+(df_similarity_0['Richness_COUNT_RANK']+df_similarity_0['Richness_SUM_RANK']).astype(float)
@@ -226,7 +225,6 @@ def score(df_similarity,opt,samples):
 	df_score.to_csv(opt.output_dir+result_name)
 
 	return df_score
-
 def score_tpor(df_similarity,opt,samples):
 	gc.collect()
 	model_names = ['kmeans','agglmerativeclustering']
