@@ -12,28 +12,33 @@ scaler =StandardScaler()
 class preprocess():
     def descriptors(df_orig,samples):
         print('descriptor is')
+<<<<<<< HEAD
+=======
         print(df_orig)
+>>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
         print(df_orig.columns)
         df_orig=df_orig[(df_orig['S1_SUM']>0)&(df_orig['Richness_SUM']>0)&(df_orig['S1_COUNT']>0)&(df_orig['Richness_COUNT']>0)&(df_orig['S1_STDEV']>0)&(df_orig['Richness_STDEV']>0)]
+        print(len(df_orig))
         df_orig['S1_ind']  = df_orig['S1_SUM']/df_orig['S1_STDEV']
         df_orig['Richness_ind']  = df_orig['Richness_SUM']/df_orig['Richness_STDEV']
         df_orig['S1_Richness_efficiency']= df_orig['Richness_SUM']/df_orig['S1_SUM']
         df_orig['S1_Richness_balance']=abs((df_orig['Richness_ind']/df_orig['S1_ind']).apply(np.log))  
         df_orig = df_orig[['CodeA','CodeB','CodeC','Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT','S1_ind','Richness_ind','S1_Richness_balance','S1_Richness_efficiency']]
-        print(df_orig)
         if len(samples)>0:
             for i in range(len(samples)):
                 codeA=samples['CodeA'][i]
                 codeB=samples['CodeB'][i]
                 codeC=samples['CodeC'][i]
-                print(codeA,codeB,codeC)
                 print(df_orig [(df_orig ['CodeC']==codeC) & (df_orig ['CodeB']==codeB) & (df_orig ['CodeA']==codeA)])
         print(df_orig)
         return df_orig
     def dataStandardize(df_orig,samples):
         print(df_orig.columns)
+<<<<<<< HEAD
+=======
         print('original dataframe is')
         print(df_orig)
+>>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
         cols = ['Richness_SUM','Richness_STDEV','Richness_COUNT','S1_SUM','S1_STDEV','S1_COUNT']
         for col in cols:
             df_orig[col+'_orig']=df_orig[col]
@@ -54,7 +59,6 @@ class preprocess():
                 codeB=samples['CodeB'][i]
                 codeC=samples['CodeC'][i]
                 print(df_normalized [(df_normalized ['CodeC']==codeC) & (df_normalized ['CodeB']==codeB) & (df_normalized ['CodeA']==codeA)])
-
 
         return df_normalized
     def dataPreprocess_filter(df,samples,opt):
@@ -80,6 +84,7 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
+
         scope_balance = int(len(df)*0.4)
 
         df=df.nlargest(scope_balance , ['S1_ind','Richness_ind'])
@@ -93,10 +98,19 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
+<<<<<<< HEAD
+        
+        if opt.amplify_filtering.lower()=='no':
+            scope_balance_ind = int(len(df)*0.8)
+
+            #df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
+
+=======
         scope_balance_ind = int(len(df)*0.8)
         if opt.amplify_filtering.lower()=='yes':
             scope_balance_ind = int(len(df)*0.9)
         df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
+>>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
         print('-------------------------s1 and Richness balance II----------------------')
         print(len(df))
 
@@ -108,6 +122,7 @@ class preprocess():
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
         scope_total_Richness = int(len(df)*0.4)
 
+        #print(scope_efficiency)
         df=df.nlargest(scope_total_Richness , ['Richness_SUM','S1_SUM'])
         print('-------------------------total Richness----------------------')
         print(len(df))
@@ -149,6 +164,15 @@ class preprocess():
             scope_balance_ind = int(len(df)*0.75)
             df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
 
+<<<<<<< HEAD
+        if opt.amplify_filtering.lower()=='no':
+            scope_balance_ind = int(len(df)*0.8)
+            #df=df.nsmallest(scope_balance_ind , 'S1_Richness_balance')
+
+
+
+=======
+>>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
         print('-------------------------s1 and Richness balance II----------------------')
         print(len(df))
 
@@ -159,7 +183,8 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
-        scope_count = int(len(df)*0.5)
+        scope_count = int(len(df)*0.4)
+
         
         df=df.nlargest(scope_count , ['S1_COUNT','Richness_COUNT'])
 
@@ -173,8 +198,13 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
-        
-        scope_total_Richness = int(len(df)*0.5)
+
+
+        if opt.amplify_filtering.lower()=='yes':
+            scope_total_Richness = int(len(df)*0.1)
+        else:
+            scope_total_Richness = int(len(df)*0.5)           
+
 
         df=df.nlargest(scope_total_Richness , ['Richness_SUM','S1_SUM'])
         print('-------------------------total Richness----------------------')
@@ -186,6 +216,10 @@ class preprocess():
                 codeC=samples['CodeC'][i]
                 print(df [(df ['CodeC']==codeC) & (df ['CodeB']==codeB) & (df ['CodeA']==codeA)])
 
+<<<<<<< HEAD
+
+        #if opt.amplify_filtering.lower()=='yes':
+=======
         if opt.amplify_filtering.lower()=='yes':
             quasi_richness_sum = [q for q in quantiles((df['Richness_SUM']),n=5)][-2]
             quasi_s1_sum = [q for q in quantiles((df['S1_SUM']),n=5)][-2]
@@ -193,14 +227,24 @@ class preprocess():
             df=df[(df['Richness_SUM']>quasi_richness_sum )&(df['S1_SUM']>quasi_s1_sum )]
 
 
+>>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
         quasi_richness_stdev = [q for q in quantiles((df['Richness_STDEV']),n=25)][-1]
         quasi_s1_stdev = [q for q in quantiles((df['S1_STDEV']),n=25)][-1]
 
         df=df[(df['Richness_STDEV']<quasi_richness_stdev )|(df['S1_STDEV']<quasi_s1_stdev )]
 
+<<<<<<< HEAD
+
+
+
         df=df[(df['S1_ind']>1)&(df['Richness_ind']>1)]
 
 
+=======
+        df=df[(df['S1_ind']>1)&(df['Richness_ind']>1)]
+
+
+>>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
         print(len(df))
         if len(samples)>0:
             for i in range(len(samples)):

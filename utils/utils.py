@@ -5,6 +5,7 @@ import random
 import sklearn
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import GridSearchCV,ShuffleSplit,HalvingGridSearchCV
+from sklearn.metrics import silhouette_score, calinski_harabasz_score
 from sklearn.svm import OneClassSVM
 import models
 from models import oneclassSVM, Config
@@ -44,13 +45,7 @@ def AEC(x):
 	
 	print("min_samples are: ", min_samples_aec)
 	return eps_aec,min_samples_aec
-def logProbability(model,x):
 
-	score = model.score_samples(x)
-	score[score==0]=1
-	f = np.log(score)
-
-	return f
 
 def boundary(x,x_):
 	similarity=[]
@@ -76,9 +71,9 @@ def distanceCP(x,c):
 		except ZeroDivisionError:
 			dist.append(1)
 	return dist
-def optimizeOCS(x):
+def optimizeOCS_dense(x):
 
-	nus =[0.2,0.4,0.6,0.8,0.9]
+	nus =[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
 	coefs = [0.1,0.01,0.001]
 	nu_list=[]
 	coef_list=[]
@@ -96,16 +91,46 @@ def optimizeOCS(x):
 	df_models['nu']=nu_list
 	df_models['coef']=coef_list
 	df_models['score']=score_list
+	print(df_models)
+
 	diff=[]
 	for i in range(len(df_models)):
 		if i==0:
 			diff.append(0)
 		else:
 			diff.append(df_models['score'][i]-df_models['score'][i-1])
+	
 	df_models['diff']=diff
 	nu_best = df_models['nu'][np.argmax(df_models['diff'])]
 	coef_best = df_models['coef'][np.argmax(df_models['diff'])]
-	
+	return nu_best,coef_best
+def optimizeOCS_silhouette(x):
+
+	nus =[0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009]
+	coefs = [0.1,0.01,0.001]
+	nu_list=[]
+	coef_list=[]
+	score_list=[]
+	for nu_ in nus:
+		for coef_ in coefs:
+			config = Config.OCS_config()
+			model_search = OneClassSVM(**config,nu=nu_,coef0=coef_)
+			y = model_search.fit_predict(x)
+			score_search = silhouette_score(x,y)
+
+			nu_list.append(nu_)
+			coef_list.append(coef_)
+			score_list.append(score_search)
+	df_models = pd.DataFrame()
+	df_models['nu']=nu_list
+	df_models['coef']=coef_list
+	df_models['score']=score_list
+	print(df_models)
+
+
+	nu_best = df_models['nu'][np.argmax(df_models['score'])]
+	coef_best = df_models['coef'][np.argmax(df_models['score'])]
+
 	return nu_best,coef_best
 class searchCV():
     def gridSearchCV(model_base):

@@ -6,7 +6,7 @@ import datetime
 import models
 from models import ipca
 import similarityAnalysis
-from similarityAnalysis import ipcaAnalysis,similarity,similarity_old,similarity_test,ipcaAnalysis_old
+from similarityAnalysis import ipcaAnalysis,similarity
 import data
 from data import dataLoading_filter,dataLoading_rank,erhAnalysis,erhAnalysis_tpor
 from scipy import stats as st
@@ -30,6 +30,18 @@ def get_parser():
     #parser.add_argument('--data_dir',type=str,default='./data/tpor/total.csv', help = 'directory of the original data' )
     #parser.add_argument('--data_dir',type=str,default='./output/tpor/level_0/output_OneClassSVM_phase1_level0.csv', help = 'directory of the original data' ) # this is for level 1
     #parser.add_argument('--data_dir',type=str,default='./data/phase_1/total.csv', help = 'directory of the original data' )
+<<<<<<< HEAD
+    parser.add_argument('--data_dir',type=str,default='./output/phase_1/level_0/output_OneClassSVM_phase1_level0.csv', help = 'directory of the original data' ) # this is for level 1
+    #parser.add_argument('--data_dir',type=str,default='./data/phase_2/total.csv', help = 'directory of the original data' )
+    #parser.add_argument('--data_dir',type=str,default='C:/Users/sharo/Documents/DEL_AI-main/output_anomaly/phase_2/level_0/output_OneClassSVM_phase2_level0.csv', help = 'directory of the original data' ) # this is for level 1
+    parser.add_argument('--erh_dir',type=str,default='C:/Users/sharo/Documents/DEL_AI-main/data/phase_1/erh/', help = 'directory of erh files' )
+    parser.add_argument('--graph_dir',type=str,default='C:/Users/sharo/Documents/DEL_AI-main/graph/phase_1/level_1/', help = 'directory of graphs' )
+    parser.add_argument('--output_dir',type=str,default='C:/Users/sharo/Documents/DEL_AI-main/output/phase_1/level_1/', help = 'directory of outputs')
+    parser.add_argument('--level',type=str,default='level1', help = 'level is either "level0" or "level1". Level0 is for filtering, and level1 is for ranking.')
+    parser.add_argument('--model_name',type=str,default='OneClassSVM', help = 'clustering model is one of the list ["OneClassSVM","KMeans","Spectral","BIRCH","AgglomerativeClustering","OpticsClustering"].')
+    parser.add_argument('--parameter_optimizer',type=str,default='Yes', help = 'OCSVM model can be auto-optimized.Default to "Yes".')
+    parser.add_argument('--ocm_optimizer',type=str,default='dense_optmizer', help = 'OCM optimizer model can be on of the list ["dense_optmizer","silhouette"].')
+=======
     #parser.add_argument('--data_dir',type=str,default='./output/phase_1/level_0/output_OneClassSVM_phase1_level0.csv', help = 'directory of the original data' ) # this is for level 1
     #parser.add_argument('--data_dir',type=str,default='./data/phase_2/total.csv', help = 'directory of the original data' )
     parser.add_argument('--data_dir',type=str,default='C:/Users/sharo/Documents/DEL_AI-main/output/phase_2/level_0/output_OneClassSVM_phase2_level0.csv', help = 'directory of the original data' ) # this is for level 1
@@ -39,6 +51,7 @@ def get_parser():
     parser.add_argument('--level',type=str,default='level1', help = 'level is either "level0" or "level1". Level0 is for filtering, and level1 is for ranking.')
     parser.add_argument('--model_name',type=str,default='OneClassSVM', help = 'clustering model is one of the list ["OneClassSVM","KMeans","Spectral","BIRCH","AgglomerativeClustering","OpticsClustering"].')
     parser.add_argument('--parameter_optimizer',type=str,default='Yes', help = 'OCSVM model can be auto-optimized.Default to "Yes". Can set to "No" to use the default model.')
+>>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
     parser.add_argument('--amplify_filtering',type=str,default='No', help = 'We add a few amplifications in preporcessing as an option. Input "Yes" if the dataset is large.')
     opt = parser.parse_args()
     return opt
@@ -55,7 +68,11 @@ if __name__=='__main__':
     graph_dir = opt.graph_dir
     output_dir = opt.output_dir
     model_name=opt.model_name
+<<<<<<< HEAD
+    samples=pd.read_csv('samples_phase1.csv')
+=======
     samples=pd.read_csv('samples_phase2.csv')
+>>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
     if os.path.exists(graph_dir)==False:
         os.makedirs(graph_dir)
     if os.path.exists(output_dir)==False:
@@ -97,6 +114,10 @@ if __name__=='__main__':
     
     #----------------------------OCSVM for classification----------------------------------------------------------
     y_predict,x,df_result =classification(df_erh_insr,opt,samples,currentTime)
+<<<<<<< HEAD
+    '''
+=======
+>>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
     #----------------------------IPCA for Visulization and Hit Candidate Clustering--------------------------------
     #df_erh_tpor_ipca = ipcaAnalysis.ipcaAnalysis_tpor(df_erh_tpor,df_result)
     df_erh_insr_ipca = ipcaAnalysis.ipcaAnalysis(df_erh_insr,df_result)
@@ -118,5 +139,9 @@ if __name__=='__main__':
     del df_filtered
     del df_similarity
     del df
+<<<<<<< HEAD
+    '''
+=======
     
     
+>>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
