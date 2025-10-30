@@ -8,10 +8,6 @@ def dataLoading_filter(data_dir,samples):
     df_orig = pd.read_csv(data_dir)
     print(len(df_orig))
 
-<<<<<<< HEAD
-=======
-    '''
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
     columns = df_orig.columns
     cols_rs=[]
     cols_erh= []
@@ -28,11 +24,7 @@ def dataLoading_filter(data_dir,samples):
 
     df_orig['S1_STDEV'] = df_orig[cols_rs].std(axis=1)
     df_orig['Richness_STDEV'] = df_orig[cols_erh].std(axis=1)
-<<<<<<< HEAD
 
-=======
-	'''
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
     if len(samples)>0:
         for i in range(len(samples)):
             codeA=samples['CodeA'][i]
@@ -45,11 +37,6 @@ def dataLoading_filter(data_dir,samples):
 def dataLoading_rank(data_dir,samples):
     global cols_erh,cols_rs
     df_orig = pd.read_csv(data_dir)
-<<<<<<< HEAD
-=======
-    print(df_orig[df_orig['class']==1])
-    print(df_orig[df_orig['class']==1])
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
     df_orig.fillna(0, inplace=True)
     print(df_orig[df_orig['class']==1])
     
@@ -311,11 +298,7 @@ def erhAnalysis_tpor(erh_dir,df_filtered,samples):
 
 	col_626=[]
 	col_tpor=[]
-<<<<<<< HEAD
 	#df_tpor_total=pd.DataFrame()
-=======
- 
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	for r,d,f in os.walk(erh_dir):
 		print(r)
 		for m in range(len(array)):
@@ -330,10 +313,7 @@ def erhAnalysis_tpor(erh_dir,df_filtered,samples):
 					col_tpor.append(f_)
 		print(col_626)
 		print(col_tpor)
-<<<<<<< HEAD
 		
-=======
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 		for i in range(len(f)):
 			f_ = f[i]
 			if f_.split(".")[1]=="erh":
@@ -358,16 +338,10 @@ def erhAnalysis_tpor(erh_dir,df_filtered,samples):
 					df_tpor = df_tpor.drop("Richness",axis=1)
 					df_tpor[col_name+'_S1'] = df_tpor['S1']
 					df_tpor = df_tpor.drop("S1",axis=1)
-<<<<<<< HEAD
 					#df_tpor_total=pd.concat((df_tpor_total,df_tpor),axis=1)
 					df_merge = df_merge.merge(df_tpor,how='left',on=['CodeA','CodeB','CodeC'])
 					print(df_merge [(df_merge ['CodeC']==42) & (df_merge ['CodeB']==703) & (df_merge ['CodeA']==327)])
 	#df_tpor_total.to_csv('tpor.csv')
-=======
-					df_merge = df_merge.merge(df_tpor,how='left',on=['CodeA','CodeB','CodeC'])
-					print(df_merge [(df_merge ['CodeC']==42) & (df_merge ['CodeB']==703) & (df_merge ['CodeA']==327)])
-
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	df_merge.fillna(0,inplace=True)
 	print(df_merge [(df_merge ['CodeC']==1457) & (df_merge ['CodeB']==210) & (df_merge ['CodeA']==104)])
 	df_col = pd.DataFrame()
@@ -471,11 +445,7 @@ def erhAnalysis_tpor(erh_dir,df_filtered,samples):
 	for col in df_merge.columns:
 		if '.erh' in col:
 			cols.append(col)
-<<<<<<< HEAD
 		cols.append('class')
-=======
-			cols.append('class')
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	print('columns to be dropped are: ',cols)
 	df_erh_tpor =df_merge.drop(cols,axis=1)
 	print(df_erh_tpor.columns)

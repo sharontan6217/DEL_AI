@@ -36,7 +36,7 @@ def oneclassSVM(x,opt,currentTime):
 	model = utils.searchCV.gridSearchCV(model)
 	model = model.fit(x_train,y_train)
 	----------------------------------------------------
-	'''
+	
 
 
 	df_x = pd.DataFrame(x,columns=['Enrichment_SUM','Enrichment_STDEV','Enrichment_COUNT','S1_SUM','S1_STDEV','S1_COUNT'])
@@ -47,7 +47,7 @@ def oneclassSVM(x,opt,currentTime):
 	x_shap_orig[r'$S_C$']=df_x['S1_SUM']
 	x_shap_orig[r'$\sigma_C$']=df_x['S1_STDEV']
 	x_shap_orig[r'$S_{nC}$']=df_x['S1_COUNT']
-	total_samples = len(x_shap_orig)-2
+	total_samples = 1000
 	print(len(x_shap_orig))
 	print(len(df_x))
 	if len(x_shap_orig)>=total_samples:
@@ -77,11 +77,11 @@ def oneclassSVM(x,opt,currentTime):
 	png_name='OCSVM_kernel_forceplot_'+str(currentTime)+'.png'
 
 	shap.force_plot(np.round(expected_value_kernel,4),np.round(shap_values_kernel.values[0,:],4),np.round(x_shap.iloc[0,:],4),matplotlib=True,show=False,plot_cmap='DrDb',contribution_threshold=0.0005).savefig(graph_dir+png_name)  
-	plt.show()
+	#plt.show()
 	#plt.savefig(graph_dir+png_name)
 	plt.close()
 	
-	'''
+	
 
 
 
@@ -165,7 +165,7 @@ def oneclassSVM(x,opt,currentTime):
 	png_name='OCSVM_waterfall_'+str(currentTime)+'.png'
 	plt.savefig(graph_dir+png_name)
 	plt.close() 
-
+	
 	plt.figure()
 	shap.plots.force(explainer.expected_value,shap_values,matplotlib=True,show=False,plot_cmap='DrDb')
 	fig36=plt.gcf()
@@ -173,7 +173,7 @@ def oneclassSVM(x,opt,currentTime):
 	png_name='OCSVM_kernel_forceplot_'+str(currentTime)+'.png'
 	plt.savefig(graph_dir+png_name)
 	plt.close() 
-
+	
 	plt.figure()
 
 	shap.plots.heatmap(shap_values,show=False)        

@@ -105,11 +105,7 @@ def ipcaAnalysis_tpor(df_erh_tpor,df_result):
     df_erh_tpor_ipca['total_pY626_mixed_ipca'] = x_ipca_626_mixed[:,1] 
 
 
-<<<<<<< HEAD
     x_erh_626_tpor_normalized = np.array(df_erh_tpor_ipca[['total_tpor_normalized','s1_tpor_normalized','total_pY626_normalized','s1_pY626_normalized']])    
-=======
-    x_erh_626_tpor_normalized = np.array(df_erh_tpor_ipca[['total_pY626_normalized','s1_pY626_normalized','total_tpor_normalized','s1_tpor_normalized']])    
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
  
     #x_normalized_626 = np.array(df_erh_tpor_ipca[['total_tpor','total_pY626']])    
 
@@ -123,11 +119,7 @@ def ipcaAnalysis_tpor(df_erh_tpor,df_result):
     #x_normalized_626 = np.array(df_erh_tpor_ipca[['total_tpor','total_pY626']])    
 
 
-<<<<<<< HEAD
     x_erh_tpor_626_normalized_mixed = np.array(df_erh_tpor_ipca[['total_tpor_pY626_mixed_normalized','s1_tpor_pY626_mixed_normalized','total_pY626_mixed_normalized','s1_pY626_mixed_normalized']]) 
-=======
-    x_erh_tpor_626_normalized_mixed = np.array(df_erh_tpor_ipca[['total_pY626_mixed_normalized','s1_pY626_mixed_normalized','total_tpor_pY626_mixed_normalized','s1_tpor_pY626_mixed_normalized']]) 
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 
     #x_normalized_626_mixed = np.array(df[['total_tpor','total_pY626']])    
 

@@ -74,15 +74,10 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	plt.plot(x_sample_1355,y_sample_1355,'r8')
 	plt.xlabel('PCA 1')
 	plt.ylabel('PCA 2')
-<<<<<<< HEAD
-	#plt.xlim(-6,6)
-	#plt.ylim(-1,5)
-=======
-	#plt.xlim(0,10)
-	#plt.ylim(0,5)
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
+	#plt.xlim(-5,5)
+	#plt.ylim(-1,6)
 	for i in range(len(x_sample_1355)):
-		if df_sample['CodeA'][i]==233 and df_sample['CodeB'][i]==137 and df_sample['CodeC'][i]==192:
+		if df_sample['CodeA'][i]==169 and df_sample['CodeB'][i]==247 and df_sample['CodeC'][i]==192:
 			plt.text(x_sample_1355[i],y_sample_1355[i]+0.3,text_sample[i],fontsize='small',fontweight='bold')
 		else:
 			plt.text(x_sample_1355[i],y_sample_1355[i]+0.1,text_sample[i],fontsize='small',fontweight='bold')
@@ -100,21 +95,16 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	plt.plot(x_sample_1361,y_sample_1361,'r8')
 	plt.xlabel('PCA 1')
 	plt.ylabel('PCA 2')
-<<<<<<< HEAD
-	#plt.xlim(-4,4)
-	#plt.ylim(-1,5)
-=======
-	#plt.xlim(0,10)
-	#plt.ylim(0,5)
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
+	#plt.xlim(-5,5)
+	plt.ylim(-1,4)
 	for i in range(len(x_sample_1361)):
 		
 		if df_sample['CodeA'][i]==134 and df_sample['CodeB'][i]==207 and df_sample['CodeC'][i]==192:
 			plt.text(x_sample_1361[i]-0.2,y_sample_1361[i]-0.3,text_sample[i],fontsize='small',fontweight='bold')
 		elif df_sample['CodeA'][i]==191 and df_sample['CodeB'][i]==245 and df_sample['CodeC'][i]==192:
-			plt.text(x_sample_1361[i]-1.2,y_sample_1361[i],text_sample[i],fontsize='small',fontweight='bold')
+			plt.text(x_sample_1361[i]-0.2,y_sample_1361[i],text_sample[i],fontsize='small',fontweight='bold')
 		elif df_sample['CodeA'][i]==235 and df_sample['CodeB'][i]==245 and df_sample['CodeC'][i]==192:
-			plt.text(x_sample_1361[i],y_sample_1361[i]+0.2,text_sample[i],fontsize='small',fontweight='bold')
+			plt.text(x_sample_1361[i],y_sample_1361[i]-0.1,text_sample[i],fontsize='small',fontweight='bold')
 		elif df_sample['CodeA'][i]==233 and df_sample['CodeB'][i]==137 and df_sample['CodeC'][i]==192:
 			plt.text(x_sample_1361[i]-0.2,y_sample_1361[i],text_sample[i],fontsize='small',fontweight='bold')
 		else:
@@ -149,7 +139,6 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	x_sample = df_sample['total_insr_pY1361_mixed']
 	y_sample_1361 = df_sample['total_pY1361_mixed']
 	plt.scatter(x_erh_1361[:,0],x_erh_1361[:,1], alpha=0.3)
-<<<<<<< HEAD
 	#points = [(x,x) for x in range(0,2000)]
 	points = [(x,x) for x in range(0,15000)]
 	x_line,y_line = zip(*points)
@@ -159,16 +148,6 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	plt.ylim(0,15000)
 	plt.xlabel("Enrichment on Anti-INS")
 	plt.ylabel("Enrichment on Anti-pY1361")
-=======
-	points = [(x,x) for x in range(0,4000)]
-	x_line,y_line = zip(*points)
-	plt.plot(x_line,y_line)
-
-	plt.xlim(0,4000)
-	plt.ylim(0,4000)
-	plt.xlabel('Enrichment on Anti-INSR')
-	plt.ylabel('Enrichment on Anti-pY1361')
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	plt.plot(x_sample,y_sample_1361,'r8')
 	for i in range(len(x_sample)):
 		
@@ -232,6 +211,7 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	x_sample = df_sample['total_insr']
 	y_sample_1355 = df_sample['total_pY1355']
 	plt.scatter(x_erh_1355[:,0],x_erh_1355[:,1], alpha=0.3)
+	#points = [(x,x) for x in range(0,5000)]
 	points = [(x,x) for x in range(0,15000)]
 	x_line,y_line = zip(*points)
 	plt.plot(x_line,y_line)
@@ -255,6 +235,7 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	x_sample = df_sample['total_insr']
 	y_sample_1361 = df_sample['total_pY1361']
 	plt.scatter(x_erh_1361[:,0],x_erh_1361[:,1], alpha=0.3)
+	#points = [(x,x) for x in range(0,2000)]
 	points = [(x,x) for x in range(0,15000)]
 	x_line,y_line = zip(*points)
 	plt.plot(x_line,y_line)
@@ -267,10 +248,12 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	for i in range(len(x_sample)):
 		if df_sample['CodeA'][i]==104 and df_sample['CodeB'][i]==210 and df_sample['CodeC'][i]==1457:
 			plt.text(x_sample_1361[i]-0.4,y_sample_1361[i]+0.4,text_sample[i],fontsize='small')
+			print(x_sample[i],y_sample_1361[i],text_sample[i])
 		else:
-			plt.text(x_sample_1361[i],y_sample_1361[i],text_sample[i],fontsize='small')
+			print(x_sample[i],y_sample_1361[i],text_sample[i])
+			plt.text(x_sample[i],y_sample_1361[i],text_sample[i],fontsize='small')
 
-	plt.legend(loc='best')
+	#plt.legend(loc='best')
 	fig_9=plt.gcf()
 	png_name_roc='output_ipca_pY1361_orig_'+str(currentTime)+'.png'
 	plt.savefig(graph_dir+png_name_roc)
@@ -343,7 +326,12 @@ def Visualize(x,df_similarity,y_predict,df_score,samples,opt):
 	ax.set_ylabel('PCA 2')
 	ax.set_zlabel('PCA 3')
 	for i in range(len(x_sample)):
-		ax.text(x_sample[i],y_sample[i]+0.2,z_sample[i],text_sample[i],fontsize='small')
+		if df_sample['CodeA'][i]==235 and df_sample['CodeB'][i]==245 and df_sample['CodeC'][i]==192:
+			ax.text(x_sample[i],y_sample[i]-0.2,z_sample[i]-0.2,text_sample[i],fontsize='small')
+			print(x_sample[i],y_sample_1361[i],text_sample[i])
+		else:
+			print(x_sample[i],y_sample_1361[i],text_sample[i])
+			ax.text(x_sample[i],y_sample[i]+0.2,z_sample[i],text_sample[i],fontsize='small')
 	plt.legend(loc='best')
 	fig_13=plt.gcf()
 	png_name_roc='output_ipca_antiinsr_pY1361_mixed_'+str(currentTime)+'.png'
@@ -416,11 +404,7 @@ def Visualize_tpor(x,df_similarity,y_predict,df_score,samples,opt):
 	#plt.xlim(0,10)
 	#plt.ylim(0,5)
 	for i in range(len(x_sample_626)):
-<<<<<<< HEAD
 		plt.text(x_sample_626[i],y_sample_626[i]+0.2,text_sample[i],fontsize='small')
-=======
-		plt.text(x_sample_626[i],y_sample_626[i]+0.2,text_sample[i],fontsize='x-small')
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	plt.legend(loc='best')
 	fig_2=plt.gcf()
 	png_name_roc='output_ipca_pY626_mixed_'+str(currentTime)+'.png'
@@ -432,29 +416,17 @@ def Visualize_tpor(x,df_similarity,y_predict,df_score,samples,opt):
 	x_sample = df_sample['total_tpor_pY626_mixed']
 	y_sample_626 = df_sample['total_pY626_mixed']
 	plt.scatter(x_erh_626[:,0],x_erh_626[:,1], alpha=0.3)
-<<<<<<< HEAD
 	points = [(x,x) for x in range(0,500)]
 	x_line,y_line = zip(*points)
 	plt.plot(x_line,y_line)
 	plt.xlim(0,500)
 	plt.ylim(0,500)
-=======
-	points = [(x,x) for x in range(0,4000)]
-	x_line,y_line = zip(*points)
-	plt.plot(x_line,y_line)
-	plt.xlim(0,4000)
-	plt.ylim(0,4000)
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	plt.plot(x_sample,y_sample_626,'r8')
 	#plt.title('Clustering')
 	plt.xlabel('Enrichment on Anti-tpor')
 	plt.ylabel('Enrichment on Anti- pY626')
 	for i in range(len(x_sample)):
-<<<<<<< HEAD
 		plt.text(x_sample[i],y_sample_626[i]+0.2,text_sample[i],fontsize='small')
-=======
-		plt.text(x_sample[i],y_sample_626[i]+0.2,text_sample[i],fontsize='x-small')
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	plt.legend(loc='best')
 	fig_4=plt.gcf()
 	png_name_roc='output_ipca_pY626_orig_mixed_'+str(currentTime)+'.png'
@@ -477,11 +449,7 @@ def Visualize_tpor(x,df_similarity,y_predict,df_score,samples,opt):
 	plt.xlabel('PCA 1')
 	plt.ylabel('PCA 2')
 	for i in range(len(x_sample_626)):
-<<<<<<< HEAD
 		plt.text(x_sample_626[i],y_sample_626[i]+0.2,text_sample[i],fontsize='small')
-=======
-		plt.text(x_sample_626[i],y_sample_626[i]+0.2,text_sample[i],fontsize='x-small')
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	plt.legend(loc='best')
 	fig_6=plt.gcf()
 	png_name_roc='output_ipca_pY626_'+str(currentTime)+'.png'
@@ -493,29 +461,17 @@ def Visualize_tpor(x,df_similarity,y_predict,df_score,samples,opt):
 	x_sample = df_sample['total_tpor']
 	y_sample_626 = df_sample['total_pY626']
 	plt.scatter(x_erh_626[:,0],x_erh_626[:,1], alpha=0.3)
-<<<<<<< HEAD
 	points = [(x,x) for x in range(0,500)]
 	x_line,y_line = zip(*points)
 	plt.plot(x_line,y_line)
 	plt.xlim(0,500)
 	plt.ylim(0,500)
-=======
-	points = [(x,x) for x in range(0,4000)]
-	x_line,y_line = zip(*points)
-	plt.plot(x_line,y_line)
-	plt.xlim(0,4000)
-	plt.ylim(0,4000)
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	plt.plot(x_sample,y_sample_626,'r8')
 
 	plt.xlabel('Enrichment on tpor')
 	plt.ylabel('Enrichment on pY626')
 	for i in range(len(x_sample)):
-<<<<<<< HEAD
 		plt.text(x_sample[i],y_sample_626[i]+0.2,text_sample[i],fontsize='small')
-=======
-		plt.text(x_sample[i],y_sample_626[i]+0.2,text_sample[i],fontsize='x-small')
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	plt.legend(loc='best')
 	fig_8=plt.gcf()
 	png_name_roc='output_ipca_pY626_orig_'+str(currentTime)+'.png'
@@ -535,11 +491,7 @@ def Visualize_tpor(x,df_similarity,y_predict,df_score,samples,opt):
 	ax.set_ylabel('PCA 2')
 	ax.set_zlabel('PCA 3')
 	for i in range(len(x_sample)):
-<<<<<<< HEAD
 		ax.text(x_sample[i],y_sample[i]+0.2,z_sample[i],text_sample[i],fontsize='small')
-=======
-		ax.text(x_sample[i],y_sample[i]+0.2,z_sample[i],text_sample[i],fontsize='x-small')
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
 	plt.legend(loc='best')
 	fig_10=plt.gcf()
 	png_name_roc='output_ipca_antitpor_pY626_'+str(currentTime)+'.png'
@@ -560,11 +512,10 @@ def Visualize_tpor(x,df_similarity,y_predict,df_score,samples,opt):
 	ax.set_ylabel('PCA 2')
 	ax.set_zlabel('PCA 3')
 	for i in range(len(x_sample)):
-<<<<<<< HEAD
-		ax.text(x_sample[i],y_sample[i]+0.2,z_sample[i],text_sample[i],fontsize='small')
-=======
-		ax.text(x_sample[i],y_sample[i]+0.2,z_sample[i],text_sample[i],fontsize='x-small')
->>>>>>> 87ebe5252ee9393e704112a1bb886d2cfacf5196
+		if df_sample['CodeA'][i]==124 and df_sample['CodeB'][i]==159 and df_sample['CodeC'][i]==422:
+			ax.text(x_sample[i],y_sample[i]+0.1,z_sample[i]+0.1,text_sample[i],fontsize='small')
+		else:
+			ax.text(x_sample[i],y_sample[i],z_sample[i],text_sample[i],fontsize='small')
 	plt.legend(loc='best')
 	fig_12=plt.gcf()
 	png_name_roc='output_ipca_antitpor_pY626_mixed_'+str(currentTime)+'.png'
